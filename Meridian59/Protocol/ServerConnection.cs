@@ -273,9 +273,16 @@ namespace Meridian59.Protocol
 
             // enable UDP for MeridianNext
 #if !VANILLA && !OPENMERIDIAN
-            const bool USE_UDP = true;
+            
+            // Hotfix@SilenceM59
+            // UDP disabled - or your character can't move.
+            // Until a fix is found.
+            const bool USE_UDP = false; //true;
+
 #else
+            
             const bool USE_UDP = false;
+
 #endif
 
             // send some by UDP
