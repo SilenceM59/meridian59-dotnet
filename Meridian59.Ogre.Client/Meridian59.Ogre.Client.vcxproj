@@ -248,6 +248,8 @@
     <ClInclude Include="ControllerSound.h" />
     <ClInclude Include="ControllerUI.h" />
     <ClInclude Include="DataControllerOgre.h" />
+    <ClInclude Include="Drone.h" />
+    <ClInclude Include="DroneBot.h" />
     <ClInclude Include="GameTickOgre.h" />
     <ClInclude Include="ImageBuilders.h" />
     <ClInclude Include="ImageComposerCEGUI.h" />
@@ -290,6 +292,8 @@
     <ClCompile Include="ControllerSound.cpp" />
     <ClCompile Include="ControllerUI.cpp" />
     <ClCompile Include="DataControllerOgre.cpp" />
+    <ClCompile Include="Drone.cpp" />
+    <ClCompile Include="DroneBot.cpp" />
     <ClCompile Include="ImageBuilders.cpp" />
     <ClCompile Include="ImageComposerCEGUI.cpp" />
     <ClCompile Include="ImageComposerOgre.cpp" />

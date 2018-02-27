@@ -120,6 +120,12 @@
     <ClInclude Include="TypeDefs.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Drone.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DroneBot.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">
@@ -332,6 +338,12 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="UIStats.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Drone.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="DroneBot.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

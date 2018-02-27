@@ -304,6 +304,9 @@ namespace Meridian59 { namespace Ogre
 
       // set UI intially to login panel
       Data->UIMode = UIMode::Login;
+
+	  // Init drone
+	  Drone.Init();
    };
 
    void OgreClient::RenderWindowCreate()
@@ -496,6 +499,9 @@ namespace Meridian59 { namespace Ogre
       // render a frame
       if (root)
          root->renderOneFrame();
+
+	  // Update Drone
+	  Drone.Update();
    };
 
    void OgreClient::Cleanup()
@@ -620,6 +626,9 @@ namespace Meridian59 { namespace Ogre
 
    void OgreClient::Disconnect()
    {
+	  // Init drone
+	  Drone.Stop();
+
       // call base disconnect
       SingletonClient::Disconnect();
 

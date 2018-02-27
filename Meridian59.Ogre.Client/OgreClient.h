@@ -50,6 +50,7 @@
 #include "ResourceManagerOgre.h"
 #include "DataControllerOgre.h"
 #include "OgreClientConfig.h"
+#include "Drone.h"
 
 namespace Meridian59 { namespace Ogre
 {
@@ -344,6 +345,11 @@ namespace Meridian59 { namespace Ogre
       /// Constructor
       /// </summary>
       OgreClient();
+
+	  /// <summary>
+	  /// Drone
+	  /// </summary>
+	  Drone Drone;
 
       /// <summary>
       /// Custom startup code

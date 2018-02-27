@@ -2730,6 +2730,34 @@ namespace Meridian59.Client
         }
 
         /// <summary>
+        /// Loot all stackables
+        /// </summary>
+        public void LootAllStackables()
+        {
+            RooFile room = Data.RoomInformation.ResourceRoom;
+            RoomObject avatar = Data.AvatarObject;
+
+            if ( room != null && avatar != null )
+            {
+                // get visible objects within distances
+                List<RoomObject> candidates = avatar.GetObjectsWithinDistance(
+                    Data.RoomObjects,
+                    room,
+                    GeometryConstants.CLOSEDISTANCE,
+                    GeometryConstants.CLOSEDISTANCE,
+                    false);
+
+                foreach ( RoomObject obj in candidates )
+                {
+                    if ( obj.IsStackable && obj.Flags.IsGettable )
+                    {
+                        SendReqGetMessage( new ObjectID( obj.ID ) );
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Uses, unuses or applies an item based on its flags/inuse state.
         /// </summary>
         /// <param name="Item"></param>
