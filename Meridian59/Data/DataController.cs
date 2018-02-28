@@ -2206,7 +2206,14 @@ namespace Meridian59.Data
         protected virtual void HandleMove(MoveMessage Message)
         {
             RoomObject roomObject = RoomObjects.GetItemByID(Message.ObjectID);
-            if (roomObject != null)
+
+            if ( roomObject == null )
+                return;
+
+            // Wallhack@SilenceM59
+            // Allow bots to walk through walls.
+            // Prevent this from breaking outdoor doors.
+            if ( ! roomObject.IsAvatar || ( roomObject.IsAvatar && ! roomObject.IsMoving ) )
             {
 #if !VANILLA && !OPENMERIDIAN
                 // set new angle from message
