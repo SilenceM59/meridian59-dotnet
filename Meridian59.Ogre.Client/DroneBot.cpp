@@ -9,6 +9,7 @@ namespace Meridian59
 		int attack_distance = 12000;
 		float target_distance = 0;
 
+		int ticks_seek = 0;
 		int ticks_assist = 0;
 		int ticks_convey = 0;
 		int ticks_phase = 0;
@@ -17,7 +18,6 @@ namespace Meridian59
 
 		int allow_face_change = 0;
 		int max_face_ticks = 50;
-		int allow_teleport = 0;
 		int max_teleport_ticks = 100;
 
 		bool stop_test = false;
@@ -178,6 +178,17 @@ namespace Meridian59
 
 		void DroneBot::SeekAndDestroy()
 		{
+			ticks_seek++;
+
+			if (ticks_seek <= 0)
+			{
+				// Sleep until ticks_seek is greater than zero.
+				// Allows some laggy processes to wait for the server to catch up.
+				return;
+			}
+
+			ticks_seek = 0;
+
 			try {
 
 				if (OgreClient::Singleton->Data->Effects->Paralyze->IsActive)
@@ -273,9 +284,13 @@ namespace Meridian59
 						}
 						if (sym_random < 0)
 						{
-							target_position.X -= Math::RangeRandom(-40, 20);
-							target_position.Y -= Math::RangeRandom(-20, 00);
+							target_position.X -= Math::RangeRandom(-60, 40);
+							target_position.Y -= Math::RangeRandom(-60, 10);
 						}
+
+						// Wait 5 ticks after the position adjustment.
+						// Allows for adjustments to set in to the server.
+						ticks_seek = -5;
 					}
 					else {
 						target_position.X -= 30;
@@ -284,14 +299,12 @@ namespace Meridian59
 
 					// Setting the vigor speed is import because we're bypassing the collision TryMove system.
 					// If you are running while out of vigor, the game will constantly kick back your char position.
-					int Speed = 50;
+					int Speed = (byte)MovementSpeed::Run;
 
 					if (OgreClient::Singleton->Data->VigorPoints < 10)
-						Speed = 25;
+						Speed = (byte)MovementSpeed::Walk;
 
 					Avatar->StartMoveTo(target_position, Speed);
-					//	allow_teleport = 0;
-					//}
 				}
 			}
 			catch (...) {
@@ -651,7 +664,6 @@ namespace Meridian59
 			if (seek_destroy)
 			{
 				allow_face_change++;
-				allow_teleport++;
 			}
 		}
 
@@ -813,13 +825,13 @@ namespace Meridian59
 				ok = true;
 				conveying = true;
 				ticks_convey = 0;
-				Log("Conveying now!", true);
+				Log("Conveying NOW.", true);
 			}
-			else if (input == "/follow") {
+			else if (input == "/convey") {
 				ok = true;
 				conveying = false;
 				ticks_convey = 0;
-				Log("You stopped conveying.", true);
+				Log("Conveying ABORTED.", true);
 			}
 
 			// Auto Follow			
@@ -828,12 +840,12 @@ namespace Meridian59
 				ok = true;
 				seek_destroy = false;
 				follow = true;
-				Log("Auto-Follow activated.", true);
+				Log("Auto-Follow ON.", true);
 			}
 			else if (input == "/follow") {
 				ok = true;
 				follow = false;
-				Log("Auto-Follow turned off.", true);
+				Log("Auto-Follow OFF.", true);
 			}
 
 			// Assist 
@@ -856,7 +868,7 @@ namespace Meridian59
 			else if (input == "/assist off") {
 				ok = true;
 				assist = false;
-				Log("Assist turned off.", true);
+				Log("Assist OFF.", true);
 			}
 
 			// Seek & Destroy (self builder) 
@@ -865,12 +877,12 @@ namespace Meridian59
 				ok = true;
 				StopEverything();
 				seek_destroy = true;
-				Log("Seek & Destroy activated.", true);
+				Log("Seek & Destroy ON.", true);
 			}
 			else if (input == "/seek") {
 				ok = true;
 				seek_destroy = false;
-				Log("Seek & Destroy turned off.", true);
+				Log("Seek & Destroy OFF.", true);
 			}
 
 			if (ok)
@@ -890,6 +902,8 @@ namespace Meridian59
 			phasing = false;
 			auto_conveying = false;
 			auto_phasing = false;
+			allow_fast_attack = false;
+			allow_face_change = false;
 		}
 
 		// Sets a string to the chat input box
