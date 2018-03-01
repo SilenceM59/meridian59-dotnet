@@ -23,6 +23,49 @@ namespace Meridian59
 		bool stop_test = false;
 		bool stop_test_message = false;
 
+		void DroneBot::Tour()
+		{
+			ticks_tour++;
+
+			if (ticks_tour <= 10 || ! OgreClient::Singleton->Data->RoomInformation->RoomID)
+			{
+				return;
+			}
+
+			ticks_tour = 0;
+
+			CEGUI::ItemListbox* list = ControllerUI::GoList::List;
+
+			if (next_tour_index != last_tour_index)
+			{
+				last_room_name = OgreClient::Singleton->Data->RoomInformation->RoomName;
+				last_room_roo_name = OgreClient::Singleton->Data->RoomInformation->RoomFile;
+
+				::CEGUI::String roo_name = list->getItemFromIndex(last_tour_index)->getChildAtIdx(1)->getText();
+
+				Log("Tour in progress: " + "ROOM|" + list->getItemFromIndex(last_tour_index)->getID().ToString() + "|" + OgreClient::Singleton->Data->RoomInformation->RoomName + "|" + StringConvert::CEGUIToCLR(roo_name), true);
+
+				last_tour_index = next_tour_index;
+			}
+
+			if (last_tour_index > list->getItemCount() - 1)
+			{
+				SetChatInput("");
+				StopEverything();
+				Log("-------------------------------------", true);
+				Log("How to use your Tour Data", true);
+				Log("-------------------------------------", true);
+				Log("Check your Meridian59.log file for all of the data output into chat during your tour.", true);
+				Log("Paste the log into MS Excel and Text-To-Columns | and grab your data from columns B, C and D.", true);
+				Log("Your updated list can be added to UIGoList.cpp.", true);
+				Log("-------------------------------------", true);
+				return;
+			}
+
+			OgreClient::Singleton->SendReqDM(DMCommandType::GoRoom, list->getItemFromIndex(next_tour_index)->getID().ToString());
+			next_tour_index++;
+		}
+
 		void DroneBot::Assist()
 		{
 			if (!assist_name)
@@ -61,7 +104,7 @@ namespace Meridian59
 			{
 				assist_distance = AssistPlayer->GetDistanceSquared(Avatar->Position3D);
 
-				if (assist_distance > 5000 && ! Avatar->IsMoving)
+				if (assist_distance > 5000 && !Avatar->IsMoving)
 				{
 					FaceTarget(assist_id);
 
@@ -113,7 +156,7 @@ namespace Meridian59
 
 			RoomObject^ closest = nullptr;
 			Real smallestdist = Real::MaxValue;
-			
+
 			aggro = false;
 
 			for each(RoomObject^ obj in OgreData->RoomObjects)
@@ -122,7 +165,7 @@ namespace Meridian59
 				if (obj != nullptr && obj != AssistPlayer && obj != Avatar && obj->Flags->IsCreature && !obj->Name->Contains("soldier") && !obj->Name->Contains("army"))
 				{
 					Real dist = obj->GetDistanceSquared(AssistPlayer->Position3D);
-;					
+					;
 					if (dist <= smallestdist)
 					{
 						smallestdist = dist;
@@ -846,6 +889,11 @@ namespace Meridian59
 				ok = true;
 				follow = false;
 				Log("Auto-Follow OFF.", true);
+			}
+
+			if (input == "/tour")
+			{
+				Tour();
 			}
 
 			// Assist 

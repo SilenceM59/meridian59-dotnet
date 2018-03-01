@@ -60,7 +60,16 @@ namespace Meridian59 {
 			float VG_Percent;
 			float HP_Percent;
 			float MP_Percent;
-			
+
+			// ########################################
+			// Tour
+			// ########################################
+			int ticks_tour;
+			int last_room_id;
+			int last_tour_index = 0;
+			int next_tour_index = 0;
+			System::String^ last_room_roo_name;
+
 			// ########################################
 			// Threads Running
 			// ########################################
@@ -174,6 +183,7 @@ namespace Meridian59 {
 			int PhaseNow(bool phase);
 			bool IsAssistValid();
 			int GetClosestAssistTarget(bool target_it);
+			void Tour();
 
 			// ########################################
 			// __construct
