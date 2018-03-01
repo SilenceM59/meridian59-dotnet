@@ -153,7 +153,8 @@ namespace Meridian59 { namespace Ogre
       PlayerOverlays::Initialize();
       ObjectContents::Initialize();
       LootList::Initialize();
-      Login::Initialize();
+	  GoList::Initialize();
+	  Login::Initialize();
       Options::Initialize();
       Stats::Initialize();
 
@@ -222,7 +223,8 @@ namespace Meridian59 { namespace Ogre
       PlayerOverlays::Destroy();
       ObjectContents::Destroy();
       LootList::Destroy();
-      Login::Destroy();
+	  GoList::Destroy();
+	  Login::Destroy();
       Options::Destroy();
       Stats::Destroy();
 
@@ -294,7 +296,8 @@ namespace Meridian59 { namespace Ogre
       PlayerOverlays::ApplyLanguage();
       ObjectContents::ApplyLanguage();
       LootList::ApplyLanguage();
-      Login::ApplyLanguage();
+	  GoList::ApplyLanguage();
+	  Login::ApplyLanguage();
       Options::ApplyLanguage();
       Stats::ApplyLanguage();
    };
@@ -748,7 +751,8 @@ namespace Meridian59 { namespace Ogre
          ConfirmPopup::Window->setVisible(false);
          ObjectContents::Window->setVisible(false);
          LootList::Window->setVisible(false);
-         Login::Window->setVisible(mode == UIMode::Login);
+		 GoList::Window->setVisible(false);
+		 Login::Window->setVisible(mode == UIMode::Login);
          Options::Window->setVisible(false);
          Stats::Window->setVisible(false);
 
