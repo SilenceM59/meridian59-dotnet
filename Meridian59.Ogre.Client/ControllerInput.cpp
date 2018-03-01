@@ -707,7 +707,23 @@ namespace Meridian59 { namespace Ogre
          OgreClient::Singleton->ShowAdminForm();
       }
 
-      /********************* EXIT CASES 2 *******************/
+	  /********************** GoList ************************/
+	  /*           hardcoded key-combo for dm go            */
+	  /******************************************************/
+	  if (!ControllerUI::ProcessingInput &&
+		  oisKeyboard->isKeyDown(::OIS::KeyCode::KC_6) &&
+#ifndef DEBUG
+		  OgreClient::Singleton->Data->IsAdminOrDM &&
+#endif
+		  (oisKeyboard->isKeyDown(::OIS::KeyCode::KC_LSHIFT) ||
+			  oisKeyboard->isKeyDown(::OIS::KeyCode::KC_RSHIFT)))
+	  {
+		  ControllerUI::GoList::Window->show();
+		  ControllerUI::GoList::Window->activate();
+	  }
+
+
+	  /********************* EXIT CASES 2 *******************/
       /*        Don't go on if any of these match           */
       /******************************************************/
       if (Avatar == nullptr || Avatar->SceneNode == nullptr)
