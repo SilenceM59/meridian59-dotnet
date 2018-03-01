@@ -346,6 +346,9 @@
     <ClCompile Include="DroneBot.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="UIGoList.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="app.ico">

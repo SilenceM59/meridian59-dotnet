@@ -326,6 +326,7 @@
     <ClCompile Include="UIChat.cpp" />
     <ClCompile Include="UIConfirmPopup.cpp" />
     <ClCompile Include="UIDownloadBar.cpp" />
+    <ClCompile Include="UIGoList.cpp" />
     <ClCompile Include="UIGuild.cpp" />
     <ClCompile Include="UIGuildCreate.cpp" />
     <ClCompile Include="UIGuildHallBuy.cpp" />
