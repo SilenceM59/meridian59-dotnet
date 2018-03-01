@@ -581,6 +581,9 @@
 #define UI_NAME_LOOTLIST_LIST                "LootList.List"
 #define UI_NAME_LOOTLIST_GET                 "LootList.Get"
 #define UI_NAME_LOOTLIST_GETALL              "LootList.GetAll"
+#define UI_NAME_GOLIST_WINDOW                "GoList"
+#define UI_NAME_GOLIST_LIST                  "GoList.List"
+#define UI_NAME_GOLIST_GONOW                 "GoList.GoNow"
 #define UI_NAME_LOGIN_WINDOW                 "Login"
 #define UI_NAME_LOGIN_SERVER                 "Login.Server"
 #define UI_NAME_LOGIN_USERNAME               "Login.Username"
@@ -811,6 +814,9 @@
 #define UI_LOOTLIST_CHILDINDEX_ICON             0
 #define UI_LOOTLIST_CHILDINDEX_NAME             1
 #define UI_LOOTLIST_CHILDINDEX_AMOUNT           2
+#define UI_GOLIST_CHILDINDEX_ICON               0
+#define UI_GOLIST_CHILDINDEX_NAME               1
+#define UI_GOLIST_CHILDINDEX_AMOUNT             2
 #define UI_ATTRIBUTES_CHILDINDEX_NAME           0
 #define UI_ATTRIBUTES_CHILDINDEX_BAR            1
 #define UI_SKILLS_CHILDINDEX_ICON               0
