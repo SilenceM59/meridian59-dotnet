@@ -556,10 +556,10 @@ namespace Meridian59
 					target_position.Y = AssistPlayer->Position2D.Y;
 
 					// Move towards the target
-					int Speed = 50;
+					int Speed = (byte)MovementSpeed::Run;
 
 					if (OgreClient::Singleton->Data->VigorPoints < 10)
-						Speed = 25;
+						Speed = (byte)MovementSpeed::Walk;
 
 					Avatar->StartMoveTo(target_position, Speed);
 
