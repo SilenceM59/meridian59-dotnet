@@ -1261,7 +1261,24 @@ namespace Meridian59 { namespace Ogre
          static void ItemChange(int Index);
       };
 
-      /// <summary>
+	  /// <summary>
+	  /// LootList window
+	  /// </summary>
+	  ref class GoList abstract sealed
+	  {
+	  public:
+		  static ::CEGUI::FrameWindow* Window = nullptr;
+		  static ::CEGUI::ItemListbox* List = nullptr;
+		  static ::CEGUI::PushButton* GoNow = nullptr;
+
+		  static void Initialize();
+		  static void Destroy();
+		  static void ApplyLanguage();
+		  static void LoadList();
+		  static void ItemAdd(int Rid, String Name, String RoomName);
+	  };
+
+	  /// <summary>
       /// Login window
       /// </summary>
       ref class Login abstract sealed
@@ -2013,6 +2030,18 @@ namespace Meridian59 { namespace Ogre
          static bool OnWindowClosed(const CEGUI::EventArgs& e);
          static bool OnWindowKeyUp(const CEGUI::EventArgs& e);
       };
+
+	  /// <summary>
+	  /// GoList event handlers
+	  /// </summary>
+	  class GoList
+	  {
+	  public:
+		  static bool OnGoNowClicked(const CEGUI::EventArgs& e);
+		  static bool OnItemDoubleClick(const CEGUI::EventArgs& e);
+		  static bool OnWindowClosed(const CEGUI::EventArgs& e);
+		  static bool OnWindowKeyUp(const CEGUI::EventArgs& e);
+	  };
 
       /// <summary>
       /// Login event handlers
