@@ -48,6 +48,8 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Meridian59.BgfService", "ht
 		DefaultWebSiteLanguage = "Visual C#"
 	EndProjectSection
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Meridian59.Ogre.Setup", "Meridian59.Ogre.Setup\Meridian59.Ogre.Setup.vdproj", "{003A126E-1BA0-4F19-965A-B963A8E4CED5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -150,6 +152,10 @@ Global
 		{1E2F2286-81D7-4F6A-A4D1-E2843482C7F8}.Release|x64.ActiveCfg = Debug|Any CPU
 		{1E2F2286-81D7-4F6A-A4D1-E2843482C7F8}.Release|x86.ActiveCfg = Debug|Any CPU
 		{1E2F2286-81D7-4F6A-A4D1-E2843482C7F8}.Release|x86.Build.0 = Debug|Any CPU
+		{003A126E-1BA0-4F19-965A-B963A8E4CED5}.Debug|x64.ActiveCfg = Debug
+		{003A126E-1BA0-4F19-965A-B963A8E4CED5}.Debug|x86.ActiveCfg = Debug
+		{003A126E-1BA0-4F19-965A-B963A8E4CED5}.Release|x64.ActiveCfg = Release
+		{003A126E-1BA0-4F19-965A-B963A8E4CED5}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
