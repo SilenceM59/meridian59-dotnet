@@ -301,7 +301,7 @@ namespace Meridian59 { namespace Ogre
 
    void ControllerUI::Avatar::ConditionChange(int Index)
    {
-      StatNumeric^ condition	= OgreClient::Singleton->Data->AvatarCondition[Index];
+      StatNumeric^ condition = OgreClient::Singleton->Data->AvatarCondition[Index];
 
       // check
       if ((int)Conditions->getChildCount() > Index)
@@ -380,8 +380,16 @@ namespace Meridian59 { namespace Ogre
             }
 
             // set text
-            wndBar->setText(
-               CEGUI::PropertyHelper<int>::toString(condition->ValueCurrent) + " / " + CEGUI::PropertyHelper<int>::toString(max));
+			if (condition->ValueCurrent >= max)
+			{
+				// Do not show the:  / Max  if you are at max.
+				wndBar->setText(
+					CEGUI::PropertyHelper<int>::toString(condition->ValueCurrent));
+			}
+			else {
+				wndBar->setText(
+					CEGUI::PropertyHelper<int>::toString(condition->ValueCurrent) + " / " + CEGUI::PropertyHelper<int>::toString(max));
+			}
 
             // set tooltip
             switch(condition->Num)
