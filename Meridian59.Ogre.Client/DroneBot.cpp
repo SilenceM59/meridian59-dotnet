@@ -913,7 +913,7 @@ namespace Meridian59
 				// Only mind "Can't see" and "Can't reach" messages if you haven't landed a hit.
 				if (!landed_hit)
 				{
-					if (last_message->Contains("You can't see") || last_message->Contains("You can't reach"))
+					if (last_message->Contains("You can't see") || last_message->Contains("You can't reach") || last_message->Contains("is too far away to"))
 					{
 						ticks_face = 5;
 						cant_see_target = true;
