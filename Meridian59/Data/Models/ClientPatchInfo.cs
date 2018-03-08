@@ -30,9 +30,9 @@ namespace Meridian59.Data.Models
     public class ClientPatchInfo : IByteSerializableFast, INotifyPropertyChanged, IClearable
     {
         #region Constants
-        public const string PROPNAME_MACHINE     = "Machine";            // ww1.meridiannext.com
-        public const string PROPNAME_PATCHPATH   = "PatchPath";          // /105/clientpatch
-        public const string PROPNAME_PATCHCACHEPATH  = "PatchCachePath"; // /105/
+        public const string PROPNAME_MACHINE     = "Machine";            // update.meridian59.net
+        public const string PROPNAME_PATCHPATH   = "PatchPath";          // /classicpatch
+        public const string PROPNAME_PATCHCACHEPATH  = "PatchCachePath"; // /classicpatch
         public const string PROPNAME_UPDATERFILE = "UpdaterFile";        // Meridian59.Ogre.Patcher.exe
         public const string PROPNAME_PATCHFILE   = "PatchFile";          // patchinfo.txt
         public const string PROPNAME_REASON      = "Reason";             // "Update is required"
