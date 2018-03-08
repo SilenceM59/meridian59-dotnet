@@ -52,13 +52,13 @@
         "Entry"
         {
         "MsmKey" = "8:_819BF6ECC23EEE82C70FB3D75FF30F6E"
-        "OwnerKey" = "8:_04AD8372EE0E423EBB129E2502BB9CF7"
+        "OwnerKey" = "8:_71FF602699C14DF0994AD069261A8A65"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_819BF6ECC23EEE82C70FB3D75FF30F6E"
-        "OwnerKey" = "8:_71FF602699C14DF0994AD069261A8A65"
+        "OwnerKey" = "8:_04AD8372EE0E423EBB129E2502BB9CF7"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -70,13 +70,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_04AD8372EE0E423EBB129E2502BB9CF7"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_71FF602699C14DF0994AD069261A8A65"
+        "OwnerKey" = "8:_819BF6ECC23EEE82C70FB3D75FF30F6E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -88,7 +82,13 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_819BF6ECC23EEE82C70FB3D75FF30F6E"
+        "OwnerKey" = "8:_71FF602699C14DF0994AD069261A8A65"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_04AD8372EE0E423EBB129E2502BB9CF7"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -202,7 +202,7 @@
             "SourcePath" = "8:..\\Meridian59.Ogre.Client\\bin\\x86\\Release\\Meridian59.Ogre.Client.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
-            "Folder" = "8:_F6216857DDE04CF585B70CD8F136FA33"
+            "Folder" = "8:_68C4CE9348C14FC880F65BEFAF3314B1"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -224,16 +224,11 @@
             "AssemblyAsmDisplayName" = "8:Meridian59.AdminUI, Version=1.3.0.1, Culture=neutral, PublicKeyToken=1225cfdeb89f7c66, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
-                    "_28E74C86CB386010CD12DCB871BFF102"
-                    {
-                    "Name" = "8:Meridian59.AdminUI.DLL"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:Meridian59.AdminUI.DLL"
             "TargetName" = "8:"
             "Tag" = "8:"
-            "Folder" = "8:_F6216857DDE04CF585B70CD8F136FA33"
+            "Folder" = "8:_68C4CE9348C14FC880F65BEFAF3314B1"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -264,7 +259,7 @@
             "SourcePath" = "8:..\\Meridian59.Ogre.Client\\bin\\x86\\Release\\Meridian59.Ogre.Client.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
-            "Folder" = "8:_211BA1412EE04A1FB18D8D2152E7AEBA"
+            "Folder" = "8:_D16FCC7793C64F178F928D4A03E03517"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -286,16 +281,11 @@
             "AssemblyAsmDisplayName" = "8:Meridian59, Version=1.2.6.3, Culture=neutral, PublicKeyToken=1225cfdeb89f7c66, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
-                    "_819BF6ECC23EEE82C70FB3D75FF30F6E"
-                    {
-                    "Name" = "8:Meridian59.DLL"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:Meridian59.DLL"
             "TargetName" = "8:"
             "Tag" = "8:"
-            "Folder" = "8:_F6216857DDE04CF585B70CD8F136FA33"
+            "Folder" = "8:_68C4CE9348C14FC880F65BEFAF3314B1"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -329,7 +319,7 @@
             }
             "{3C67513D-01DD-4637-8A68-80971EB9504F}:_B0E49E4AF2ED433B8089D8187F863253"
             {
-            "DefaultLocation" = "8:[CommonAppDataFolder][Manufacturer]\\[ProductName]"
+            "DefaultLocation" = "8:[AppDataFolder][Manufacturer]\\[ProductName]"
             "Name" = "8:#1925"
             "AlwaysCreate" = "11:FALSE"
             "Condition" = "8:"
@@ -337,24 +327,24 @@
             "Property" = "8:TARGETDIR"
                 "Folders"
                 {
-                    "{9EF0B969-E518-4E46-987F-47570745A589}:_211BA1412EE04A1FB18D8D2152E7AEBA"
-                    {
-                    "Name" = "8:x86"
-                    "AlwaysCreate" = "11:FALSE"
-                    "Condition" = "8:"
-                    "Transitive" = "11:FALSE"
-                    "Property" = "8:_B552E4AF614145C2B01F157DAA6C14E1"
-                        "Folders"
-                        {
-                        }
-                    }
-                    "{9EF0B969-E518-4E46-987F-47570745A589}:_F6216857DDE04CF585B70CD8F136FA33"
+                    "{9EF0B969-E518-4E46-987F-47570745A589}:_68C4CE9348C14FC880F65BEFAF3314B1"
                     {
                     "Name" = "8:x64"
                     "AlwaysCreate" = "11:FALSE"
                     "Condition" = "8:"
                     "Transitive" = "11:FALSE"
                     "Property" = "8:_FC5CB8374D8D4246ACD5BE158422917C"
+                        "Folders"
+                        {
+                        }
+                    }
+                    "{9EF0B969-E518-4E46-987F-47570745A589}:_D16FCC7793C64F178F928D4A03E03517"
+                    {
+                    "Name" = "8:x86"
+                    "AlwaysCreate" = "11:FALSE"
+                    "Condition" = "8:"
+                    "Transitive" = "11:FALSE"
+                    "Property" = "8:_B552E4AF614145C2B01F157DAA6C14E1"
                         "Folders"
                         {
                         }
@@ -389,7 +379,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Meridian59.Ogre.Setup"
         "ProductCode" = "8:{5B66A35C-52C3-42A6-924B-E2042CFAF647}"
-        "PackageCode" = "8:{D6B78ADC-187A-43CC-88D1-67340164FFA1}"
+        "PackageCode" = "8:{3A304D8D-5CFA-437B-B5D0-8867C184269D}"
         "UpgradeCode" = "8:{6D1140FE-1D1D-4507-93EB-122FCC968333}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -519,7 +509,7 @@
             "Transitive" = "11:FALSE"
             "Target" = "8:_71FF602699C14DF0994AD069261A8A65"
             "Folder" = "8:_DF264FCEC1634CA894B4AAD80EA02688"
-            "WorkingFolder" = "8:_211BA1412EE04A1FB18D8D2152E7AEBA"
+            "WorkingFolder" = "8:_D16FCC7793C64F178F928D4A03E03517"
             "Icon" = "8:"
             "Feature" = "8:"
             }
@@ -533,7 +523,21 @@
             "Transitive" = "11:FALSE"
             "Target" = "8:_71FF602699C14DF0994AD069261A8A65"
             "Folder" = "8:_06416962113D4FF49690DCE4D7F19C4C"
-            "WorkingFolder" = "8:_211BA1412EE04A1FB18D8D2152E7AEBA"
+            "WorkingFolder" = "8:_D16FCC7793C64F178F928D4A03E03517"
+            "Icon" = "8:"
+            "Feature" = "8:"
+            }
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_E638B51F5F26444C9CD89EF4B035A73C"
+            {
+            "Name" = "8:Meridian59 115 (x64)"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_04AD8372EE0E423EBB129E2502BB9CF7"
+            "Folder" = "8:_DF264FCEC1634CA894B4AAD80EA02688"
+            "WorkingFolder" = "8:_68C4CE9348C14FC880F65BEFAF3314B1"
             "Icon" = "8:"
             "Feature" = "8:"
             }
