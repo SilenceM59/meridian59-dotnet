@@ -99,7 +99,7 @@ namespace Meridian59
 
 		void Drone::ShowHelp()
 		{
-			Bot->Log("-----------------------------------", true);
+			/*Bot->Log("-----------------------------------", true);
 			Bot->Log("Drone has phased you until you're ready", true);
 			Bot->Log("-----------------------------------", true);
 			Bot->Log("/follow - Auto follow your current target.", true);
@@ -107,7 +107,7 @@ namespace Meridian59
 			Bot->Log("/seek - Seek out your own monsters and fight them.", true);
 			Bot->Log("/stop - Stop all DroneBot script operations.", true);
 			Bot->Log("-----------------------------------", true);
-			Bot->Log("Use:  cast phase  to begin your journey.", true);
+			Bot->Log("Use:  cast phase  to begin your journey.", true);*/
 		}
 
 		static Drone::Drone(void)

@@ -13,9 +13,11 @@ namespace Meridian59 {
 		private:
 
 			//static System::Collections::Generic::List<Meridian59::Data::Models::RoomObject^>^ VisitedTargets;
-			static System::Collections::Generic::List<System::String^> IgnoredTargets;
+			static System::Collections::Generic::List<int> IgnoredTargets;
 
 		public:
+
+			bool IsDM = false;
 
 			// ########################################
 			// Name of the Player to assist
@@ -35,6 +37,9 @@ namespace Meridian59 {
 			// ########################################
 			// Timers
 			// ########################################
+			time_t last_hit_timer;
+			time_t bad_target_timer;
+			time_t ignored_targets_timer;
 			time_t seek_timer;
 			time_t face_timer;
 			time_t auto_convey;
@@ -44,9 +49,11 @@ namespace Meridian59 {
 			// ########################################
 			// Ticks
 			// ########################################
+			int ticks_face;
 			int ticks_convey;
 			int ticks_test;
 			int ticks_tick;
+			int auto_convey_every_interval_seconds = 120;
 
 			// ########################################
 			// Health, Mana and Vigor
@@ -93,6 +100,7 @@ namespace Meridian59 {
 			// ########################################
 			// Your Character
 			// ########################################
+			bool landed_hit;
 			Meridian59::Data::Models::RoomObject^ Avatar;
 			AccountType account_type;
 			int avatar_id;
@@ -154,6 +162,7 @@ namespace Meridian59 {
 			// ########################################
 			// Chat states
 			// ########################################
+			int cant_see_chat_tick;
 			bool cant_see_target = false;
 			System::String^ last_message;
 			System::String^ last_room_name;
@@ -182,8 +191,10 @@ namespace Meridian59 {
 			void FastAttack();
 			int PhaseNow(bool phase);
 			bool IsAssistValid();
+			bool CheckSkipTarget();
 			int GetClosestAssistTarget(bool target_it);
 			void Tour();
+			void CheckLandedHit();
 
 			// ########################################
 			// __construct
