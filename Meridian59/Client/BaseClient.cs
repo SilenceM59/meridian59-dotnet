@@ -1468,8 +1468,8 @@ namespace Meridian59.Client
                 V3 pos3D = avatar.Position3D;
 
                 // verify the object is visible
-                if (Target.IsVisibleFrom(ref pos3D, CurrentRoom))
-                {
+                //if (Target.IsVisibleFrom(ref pos3D, CurrentRoom))
+                //{
                     // create message instance
                     ReqAttackMessage message = new ReqAttackMessage(
                         ReqAttackMessage.ATTACK_NORMAL, Target.ID);
@@ -1479,7 +1479,7 @@ namespace Meridian59.Client
 
                     // save tick we last sent an update
                     GameTick.DidReqAttack();
-                }
+                //}
             }
         }
 

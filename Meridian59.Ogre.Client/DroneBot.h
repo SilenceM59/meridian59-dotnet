@@ -17,6 +17,7 @@ namespace Meridian59 {
 
 		public:
 
+			// Whether you're a god or not.
 			bool IsDM = false;
 
 			// ########################################
@@ -24,9 +25,18 @@ namespace Meridian59 {
 			// ########################################
 			int assist_id;
 			float assist_distance;
+			float assist_leash_distance = 60000;
 			System::String^ assist_name;
 			Meridian59::Data::Models::RoomObject^ AssistPlayer;
 
+			// ########################################
+			// Name of the Player to follow
+			// ########################################
+			int follow_id;
+			float follow_distance;
+			System::String^ follow_name;
+			Meridian59::Data::Models::RoomObject^ FollowPlayer;
+			
 			// ########################################
 			// You will login phased automatically
 			// ########################################
@@ -114,6 +124,7 @@ namespace Meridian59 {
 			Meridian59::Data::Models::RoomObject^ Target;
 			int target_id;
 			int target_id_last;
+			int face_target_id;
 			bool target_changed;
 			float target_last_x;
 			float target_last_y;
@@ -129,7 +140,10 @@ namespace Meridian59 {
 			// Aggro
 			// ########################################
 			int aggro_count;
+			int aggro_id;
 			bool aggro;
+			float aggro_distance;
+			float aggro_assist_distance;
 
 			// ########################################
 			// Statistics
@@ -191,6 +205,7 @@ namespace Meridian59 {
 			void FastAttack();
 			int PhaseNow(bool phase);
 			bool IsAssistValid();
+			bool IsFollowValid();
 			bool CheckSkipTarget();
 			int GetClosestAssistTarget(bool target_it);
 			void Tour();

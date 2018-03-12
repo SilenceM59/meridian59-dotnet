@@ -68,86 +68,183 @@ namespace Meridian59
 
 		void DroneBot::Assist()
 		{
-			if (!assist_name)
+			if (!assist_id || !assist_name || Avatar->IsMoving)
 			{
+				// Do nothing while we're moving or if we are not assisting anyone...
 				return;
 			}
 
-			if (OgreClient::Singleton->Data->Effects->Paralyze->IsActive)
+			ticks_assist++;
+
+			if (ticks_assist < 0)
+			{
+				if (face_target_id)
+				{
+					// Face a specific ID
+					ticks_face = 5;
+					FaceTarget(face_target_id);
+				}
+				else if (aggro_id)
+				{
+					// Face an aggro ID
+					ticks_face = 5;
+					FaceTarget(aggro_id);
+				}
+				else if (target_id)
+				{
+					// Face a target ID
+					ticks_face = 5;
+					FaceTarget(target_id);
+				}
+			}
+
+			if (ticks_assist <= 0)
+			{
+				// Sleep until ticks_assist is greater than zero.
+				// Allows some laggy processes to wait for the server to catch up.
+				return;
+			}
+
+			ticks_assist = 0;
+
+			if (cant_see_target)
+			{
+				OgreClient::Singleton->SendReqMoveMessage(true);
+				OgreClient::Singleton->SendReqTurnMessage(true);
+				ticks_assist = -10;
+			}
+			
+			if (phasing || auto_phasing || OgreClient::Singleton->Data->Effects->Paralyze->IsActive)
 			{
 				// Paralyzed (probably phasing).
 				allow_fast_attack = false;
 				return;
 			}
 
-			if (phasing || auto_phasing)
-			{
-				// Prevent doing any actions while phasing...
-				return;
-			}
-
 			// Auto-phase below XX HP
-			if (!auto_phasing && HP_Percent <= 0.30)
+			if (HP_Percent <= 0.30)
 			{
 				allow_fast_attack = false;
 
-				if (!stop_test)
-				{
-					Log("HP: " + HP.ToString() + " / Max: " + HP_Max.ToString() + " / Percent: " + HP_Percent.ToString(), true);
-					stop_test = true;
-				}
 				// Phase me, I am 20% of my health.
 				ticks_phase = 0;
 				auto_phasing = true;
 				return;
 			}
 
-			if (cant_see_target)
-			{
-				OgreClient::Singleton->SendReqMoveMessage(true);
-				OgreClient::Singleton->SendReqTurnMessage(true);
-			}
+			bool handling_local_aggro = false;
 
 			if (assist_id && IsAssistValid())
 			{
-				assist_distance = AssistPlayer->GetDistanceSquared(Avatar->Position3D);
+				assist_distance = Avatar->GetDistanceSquared(AssistPlayer->Position3D);
 
-				if (assist_distance > 800 && !Avatar->IsMoving)
+				if (aggro && aggro_id)
 				{
-					FaceTarget(assist_id);
+					Meridian59::Data::Models::RoomObject^ aggro_obj = OgreClient::Singleton->Data->RoomObjects->GetItemByID(aggro_id);
 
-					V2 target_position;
-
-					target_position.X = AssistPlayer->Position2D.X;
-					target_position.Y = AssistPlayer->Position2D.Y;
-
-					// Move towards the target
-					int Speed = 50;
-
-					if (OgreClient::Singleton->Data->VigorPoints < 10)
-						Speed = 25;
-
-					Avatar->StartMoveTo(target_position, Speed);
-
-					// Save this, we can turn off invis on players..
-					//OgreClient::Singleton->Data->RoomObjects->HasInvisibleRoomObject
-				}
-				else {
-					// Auto-convey every 60 seconds
-					if (!aggro && (!auto_phasing && !phasing) && account_type == AccountType::USER && std::difftime(std::time(nullptr), auto_convey) > auto_convey_every_interval_seconds)
+					if (aggro_obj == nullptr)
 					{
-						Log("Sending regs to vault...", true);
-						auto_conveying = true;
-						return;
+						aggro = false;
+						aggro_id = 0;
 					}
+					else {
 
-					// We are close enough to attack
-					int face_target_id = GetClosestAssistTarget(true);
+						landed_hit = false;
 
-					if (face_target_id)
+						// We will face the aggro_id next tick...
+						face_target_id = aggro_id;
+
+						aggro_distance = Avatar->GetDistanceSquared(aggro_obj->Position3D);
+
+						aggro_assist_distance = AssistPlayer->GetDistanceSquared(aggro_obj->Position3D);
+
+						if (aggro_distance < assist_leash_distance && assist_distance < assist_leash_distance)
+						{
+							handling_local_aggro = true;
+							OgreClient::Singleton->Data->TargetID = aggro_id;
+						}
+
+						if (handling_local_aggro && aggro_distance > attack_distance)
+						{
+							V2 target_position;
+
+							target_position.X = aggro_obj->Position2D.X;
+							target_position.Y = aggro_obj->Position2D.Y;
+
+							// Move towards the target
+							int Speed = 50;
+
+							if (OgreClient::Singleton->Data->VigorPoints < 10)
+								Speed = 25;
+
+							Avatar->StartMoveTo(target_position, Speed);
+
+							ticks_assist = -8;
+						}
+
+						if (handling_local_aggro && aggro_distance < attack_distance)
+						{
+							// Attack the aggro...
+							allow_fast_attack = true;
+						}
+					}
+				}
+
+				if (!handling_local_aggro)
+				{
+					if (assist_distance > attack_distance)
 					{
-						allow_fast_attack = true;
-						FaceTarget(face_target_id);
+						// Get closer to the person we're assisting...
+						FaceTarget(assist_id);
+
+						V2 target_position;
+
+						target_position.X = AssistPlayer->Position2D.X;
+						target_position.Y = AssistPlayer->Position2D.Y;
+
+						// Move towards the target
+						int Speed = 50;
+
+						if (OgreClient::Singleton->Data->VigorPoints < 10)
+							Speed = 25;
+
+						Avatar->StartMoveTo(target_position, Speed);
+
+						ticks_assist = -8;
+
+						// Save this, we can turn off invis on players..
+						//OgreClient::Singleton->Data->RoomObjects->HasInvisibleRoomObject
+					}
+					else
+					{
+						landed_hit = false;
+
+						// Auto-convey every 60 seconds
+						if (!aggro && (!auto_phasing && !phasing) && account_type == AccountType::USER && std::difftime(std::time(nullptr), auto_convey) > auto_convey_every_interval_seconds)
+						{
+							Log("Sending regs to vault...", true);
+							auto_conveying = true;
+							return;
+						}
+
+						// Attack anything next to the person we're assisting...
+						face_target_id = GetClosestAssistTarget(true);
+
+						if (face_target_id)
+						{
+							Meridian59::Data::Models::RoomObject^ target_room_obj = OgreClient::Singleton->Data->RoomObjects->GetItemByID(target_id);
+
+							if (target_room_obj != nullptr)
+							{
+								float target_distance = Avatar->GetDistanceSquared(target_room_obj->Position3D);
+
+								// Attack a nearby target
+								allow_fast_attack = true;
+							}
+							else {
+								face_target_id = 0;
+							}
+						}
 					}
 				}
 			}
@@ -155,6 +252,12 @@ namespace Meridian59
 
 		int DroneBot::GetClosestAssistTarget(bool target_it)
 		{
+			if (AssistPlayer == nullptr)
+			{
+				return 0;
+			}
+
+			face_target_id = 0;
 			target_id = 0;
 			target_distance = 0;
 			target_last_x = 0;
@@ -164,28 +267,34 @@ namespace Meridian59
 
 			RoomObject^ closest = nullptr;
 			Real smallestdist = Real::MaxValue;
-			
+
 			RoomObject^ closest_group = nullptr;
 			Real smallestdist_group = Real::MaxValue;
-			
+
 			RoomObject^ closest_aggro = nullptr;
 			Real smallestdist_aggro = Real::MaxValue;
 
 			aggro = false;
-
+			aggro_id = 0;
+			
 			for each(RoomObject^ obj in OgreData->RoomObjects)
 			{
-				// object itself doesn't count
-				if (obj != nullptr && obj != AssistPlayer && obj != Avatar && obj->Flags->IsCreature && !obj->Name->Contains("soldier") && !obj->Name->Contains("army"))
+				if (obj != nullptr && obj != AssistPlayer && obj != Avatar && obj->Flags->IsCreature)
 				{
-					Real dist = obj->GetDistanceSquared(AssistPlayer->Position3D);
+					if (!obj->Flags->IsMinimapAggroSelf && (obj->Name->Contains("soldier") || obj->Name->Contains("army")))
+					{
+						// Do not attack soldiers unless they're aggro to you.
+						continue;
+					}
+
+					Real dist = AssistPlayer->GetDistanceSquared(obj->Position3D);
 
 					if (dist <= smallestdist)
 					{
 						smallestdist = dist;
 						closest = obj;
 					}
-					
+
 					if (obj->Flags->IsMinimapAggroOther)
 					{
 						if (dist <= smallestdist_group)
@@ -203,24 +312,28 @@ namespace Meridian59
 							closest_aggro = obj;
 						}
 					}
-					// Check if this object is aggro on avatar
-					if (!aggro)
-					{
-						aggro = obj->Flags->IsMinimapAggroSelf;
-					}
 				}
 			}
 
-			if (smallestdist_group <= attack_distance)
+			if (closest_group != nullptr && smallestdist_group <= assist_leash_distance)
 			{
 				// Help with group monster first
+				// Override our regular aggro with the group aggro.
 				closest = closest_group;
+				smallestdist = smallestdist_group;
+				aggro = true;
+				aggro_id = closest->ID;
+				aggro_distance = Avatar->GetDistanceSquared(closest->Position3D);
 			}
 			else {
-				if (smallestdist_aggro <= attack_distance)
+				if (closest_aggro != nullptr && smallestdist_aggro <= assist_leash_distance)
 				{
 					// If the group monster is farther, try to work on my aggro.
+					aggro = true;
 					closest = closest_aggro;
+					smallestdist = smallestdist_aggro;
+					aggro_id = closest->ID;
+					aggro_distance = Avatar->GetDistanceSquared(closest->Position3D);
 				}
 			}
 
@@ -229,10 +342,10 @@ namespace Meridian59
 				if (target_id != closest->ID)
 				{
 					target_changed = true;
-					if (!IsDM)
+					/*if (!IsDM)
 					{
 						OgreClient::Singleton->LootAllStackables();
-					}
+					}*/
 				}
 				target_id = closest->ID;
 			}
@@ -260,6 +373,16 @@ namespace Meridian59
 		bool DroneBot::IsAssistValid()
 		{
 			if (!assist_id || !assist_name || AssistPlayer == nullptr || assist_id != AssistPlayer->ID)
+			{
+				return false;
+			}
+
+			return true;
+		}
+
+		bool DroneBot::IsFollowValid()
+		{
+			if (!follow_id || !follow_name || FollowPlayer == nullptr || follow_id != FollowPlayer->ID)
 			{
 				return false;
 			}
@@ -336,8 +459,6 @@ namespace Meridian59
 
 				Running_SeekAndDestroy = true;
 
-				face_timer = std::time(nullptr);
-
 				if (target_id)
 				{
 					DataControllerOgre^ OgreData = OgreClient::Singleton->Data;
@@ -385,7 +506,7 @@ namespace Meridian59
 				{
 					OgreClient::Singleton->SendReqMoveMessage(true);
 					OgreClient::Singleton->SendReqTurnMessage(true);
-					
+
 					target_distance += 30000;
 				}
 
@@ -519,7 +640,7 @@ namespace Meridian59
 					}
 					if (InventoryObj->Name->Contains("Inky-cap") && std::difftime(std::time(nullptr), last_eat) > 10)
 					{
-						if (VG <= 160)
+						if (VG <= 180)
 						{
 							last_eat = std::time(nullptr);
 							OgreClient::Singleton->UseUnuseApply(InventoryObj);
@@ -579,14 +700,12 @@ namespace Meridian59
 			{
 				if (Avatar != nullptr && !Avatar->Flags->IsPhasing && !OgreClient::Singleton->Data->Effects->Paralyze->IsActive)
 				{
-					if (!IsDM)
+					if (IsDM)
 					{
-						ticks_phase = PhaseNow(true);
-					}
-					else {
 						OgreClient::Singleton->ExecChatCommand("dm immortal");
-						Log("You are now immortal, you almost died.", true);
 					}
+
+					ticks_phase = PhaseNow(true);
 				}
 			}
 		}
@@ -640,26 +759,23 @@ namespace Meridian59
 
 		void DroneBot::AutoFollow()
 		{
-			// This will work but we need to replace assist with follow.
-			return;
-
-			if (!assist_name)
+			if (!follow_name)
 			{
 				return;
 			}
 
-			if (assist_id && IsAssistValid())
+			if (follow_id && IsFollowValid())
 			{
-				assist_distance = AssistPlayer->GetDistanceSquared(Avatar->Position3D);
+				follow_distance = FollowPlayer->GetDistanceSquared(Avatar->Position3D);
 
-				if (assist_distance > 25000)
+				if (follow_distance > attack_distance)
 				{
-					FaceTarget(assist_id);
+					FaceTarget(follow_id);
 
 					V2 target_position;
 
-					target_position.X = AssistPlayer->Position2D.X;
-					target_position.Y = AssistPlayer->Position2D.Y;
+					target_position.X = FollowPlayer->Position2D.X;
+					target_position.Y = FollowPlayer->Position2D.Y;
 
 					// Move towards the target
 					int Speed = (byte)MovementSpeed::Run;
@@ -668,12 +784,6 @@ namespace Meridian59
 						Speed = (byte)MovementSpeed::Walk;
 
 					Avatar->StartMoveTo(target_position, Speed);
-
-					//OgreClient::Singleton->Data->RoomObjects->HasInvisibleRoomObject
-				}
-				else {
-					// We are close enough to attack
-					GetClosestAssistTarget(true);
 				}
 			}
 		}
@@ -802,6 +912,18 @@ namespace Meridian59
 					{
 						aggro = obj->Flags->IsMinimapAggroSelf;
 					}
+
+					if (aggro && closest_aggro != nullptr)
+					{
+						// Get aggro distance
+						aggro_distance = Avatar->GetDistanceSquared(closest_aggro->Position3D);
+						aggro_id = closest_aggro->ID;
+					}
+					else {
+						aggro = false;
+						aggro_id = 0;
+						aggro_distance = 0;
+					}
 				}
 			}
 
@@ -833,10 +955,10 @@ namespace Meridian59
 				{
 					target_changed = true;
 
-					if (!IsDM)
+					/*if (!IsDM)
 					{
 						OgreClient::Singleton->LootAllStackables();
-					}
+					}*/
 				}
 				target_id = closest->ID;
 			}
@@ -927,6 +1049,9 @@ namespace Meridian59
 							cant_see_target = true;
 							cant_see_chat_tick = -5;
 						}
+
+						// This may break everything...
+						landed_hit = false;
 					}
 				}
 			}
@@ -945,6 +1070,7 @@ namespace Meridian59
 				landed_hit = true;
 				last_hit_timer = std::time(nullptr);
 				bad_target_timer = NULL;
+				cant_see_target = false;
 			}
 		}
 
@@ -985,23 +1111,20 @@ namespace Meridian59
 						return false;
 					}
 
-					IsDM = OgreClient::Singleton->Data->IsAdminOrDM;
+					IsDM = false;
 
 					account_type = OgreClient::Singleton->Data->AccountType;
 
-					if (assist && assist_name)
+					if (account_type == AccountType::ADMIN || account_type == AccountType::DM)
 					{
-						AssistPlayer = OgreClient::Singleton->Data->RoomObjects->GetItemByName(assist_name, false);
-
-						if (AssistPlayer == nullptr || !AssistPlayer->Flags->IsPlayer)
-						{
-							AssistPlayer = nullptr;
-							assist_id = 0;
-						}
-						else {
-							assist_id = AssistPlayer->ID;
-						}
+						IsDM = true;
 					}
+
+					// Reset follow and assist ID's when the room changes.
+					follow_id = 0;
+					assist_id = 0;
+					AssistPlayer = nullptr;
+					FollowPlayer = nullptr;
 				}
 
 				if (assist && assist_name && !assist_id)
@@ -1015,6 +1138,20 @@ namespace Meridian59
 					}
 					else {
 						assist_id = AssistPlayer->ID;
+					}
+				}
+
+				if (follow && follow_name)
+				{
+					FollowPlayer = OgreClient::Singleton->Data->RoomObjects->GetItemByName(follow_name, false);
+
+					if (FollowPlayer == nullptr || !FollowPlayer->Flags->IsPlayer)
+					{
+						FollowPlayer = nullptr;
+						follow_id = 0;
+					}
+					else {
+						follow_id = FollowPlayer->ID;
 					}
 				}
 
@@ -1100,10 +1237,35 @@ namespace Meridian59
 			// Auto Follow			
 			if (input == "/follow" && !follow)
 			{
+				follow_name = "";
+				follow_id = NULL;
+				SetChatInput("");
+
+				if (OgreClient::Singleton->Data->TargetObject == nullptr)
+				{
+					Log("You must first target a player to follow.", true);
+					return;
+				}
+
+				target_id = OgreClient::Singleton->Data->TargetID;
+
+				if (!target_id || !OgreClient::Singleton->Data->TargetObject->Flags->IsPlayer)
+				{
+					Log("You must first target a player to follow.", true);
+					return;
+				}
+
+				Meridian59::Data::Models::RoomObject^ target_room_obj = nullptr;
+
+				target_room_obj = OgreClient::Singleton->Data->RoomObjects->GetItemByID(target_id);
+
+				follow_name = target_room_obj->Name;
+				follow_id = target_room_obj->ID;
+
 				ok = true;
 				seek_destroy = false;
 				follow = true;
-				Log("Auto-Follow ON.", true);
+				Log("Auto following " + follow_name + ".", true);
 			}
 			else if (input == "/follow") {
 				ok = true;
@@ -1117,7 +1279,7 @@ namespace Meridian59
 			}
 
 			// Assist 
-			if (input->Contains("/assist") && input->Contains("[") && input->Contains("]") )
+			if (input->Contains("/assist") && input->Contains("[") && input->Contains("]"))
 			{
 				// Wait for a valid player name in quotes.
 				ok = true;
@@ -1141,7 +1303,7 @@ namespace Meridian59
 
 					target_id = OgreClient::Singleton->Data->TargetID;
 
-					if (!target_id || ! OgreClient::Singleton->Data->TargetObject->Flags->IsPlayer)
+					if (!target_id || !OgreClient::Singleton->Data->TargetObject->Flags->IsPlayer)
 					{
 						Log("You must first target a player to assist.", true);
 						return;
