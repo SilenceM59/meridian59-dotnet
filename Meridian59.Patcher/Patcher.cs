@@ -258,20 +258,40 @@ namespace Meridian59.Patcher
         /// <returns></returns>
         private static bool ReadUrlDataFile()
         {
+            bool no_patcher_file = false;
+
             // show error in case the URLDATAFILE is missing
             if (!File.Exists(URLDATAFILE))
             {
-                if (!isHeadless)
+                no_patcher_file = true;
+
+                /*if (!isHeadless)
                 {
                     MessageBox.Show("Required file " + URLDATAFILE + " is missing. Please reinstall the client.",
                         "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
-                return false;
+                return false;*/
             }
 
+            string[] urls = null;
+
             // parse url lines
-            string[] urls = File.ReadAllLines(URLDATAFILE);
+            if ( !no_patcher_file )
+            {
+                urls = File.ReadAllLines(URLDATAFILE);
+            }
+            else
+            {
+                urls = new string[2];
+
+                // @SilenceM59
+                // Create a default patcher file since setup could not find it...
+                // Yeh this is hardcoded but the setup client is running the Patcher before the patchurl.txt is created.
+                // If you find a way around this, you can remove these mods.
+                urls[0] = "http://update.meridian59.net/ogrepatch/";
+                urls[1] = "http://update.meridian59.net/ogrepatch/patchinfo.txt";
+            }
 
             // show error in case content is invalid
             if (urls == null || urls.Length < 2)
