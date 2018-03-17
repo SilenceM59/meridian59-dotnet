@@ -55,10 +55,10 @@ namespace Meridian59.Client
     /// <typeparam name="D">Type of DataController or deriving class</typeparam>
     /// <typeparam name="C">Type of Config or deriving class</typeparam>
     public abstract class BaseClient<T, R, D, C> : RootClient<T, R, D, C>
-        where T:GameTick, new()
-        where R:ResourceManager, new()
-        where D:DataController, new()
-        where C:Config, new()
+        where T : GameTick, new()
+        where R : ResourceManager, new()
+        where D : DataController, new()
+        where C : Config, new()
     {
         #region Abstract properties to implement
         public abstract byte AppVersionMajor { get; }
@@ -71,8 +71,9 @@ namespace Meridian59.Client
         protected double tickWorst   = 0.0f;
         protected double tickAverage = 0.0f;
         protected double tickBest    = Single.MaxValue;
+        protected bool roomChanged   = false;
         #endregion
-      
+
         #region Major components
         public ServerConnection ServerConnection { get; protected set; }
         public MessageEnrichment MessageEnrichment { get; protected set; }
@@ -85,16 +86,16 @@ namespace Meridian59.Client
         /// </summary>
         public BaseClient()
             : base()
-        {            
+        {
             // Initialize NetworkClient
-            ServerConnection = new ServerConnection(ResourceManager.StringResources);
+            ServerConnection = new ServerConnection( ResourceManager.StringResources );
 
             // Initialize resource loader (message enrichment thread)
-            MessageEnrichment = new MessageEnrichment(ResourceManager, ServerConnection);
+            MessageEnrichment = new MessageEnrichment( ResourceManager, ServerConnection );
 
             // Initialize a download handler in case an update is needed.
             DownloadHandler = new DownloadHandler();
-            DownloadHandler.ExitRequestEvent += new EventHandler(OnExitRequestHandler);
+            DownloadHandler.ExitRequestEvent += new EventHandler( OnExitRequestHandler );
 
             // hook up lists/model observers
             Data.ActionButtons.ListChanged += OnActionButtonListChanged;
@@ -109,28 +110,28 @@ namespace Meridian59.Client
         public virtual void Connect()
         {
             // must have active connectionentry to connect
-            if (Config.SelectedConnectionInfo == null)
+            if ( Config.SelectedConnectionInfo == null )
                 return;
 
             // load the strings for this connectionentry
             ResourceManager.SelectStringDictionary(
                 Config.SelectedConnectionInfo.StringDictionary,
-                Config.Language);
+                Config.Language );
 
             // fill ignore list in datacontroller with ignored
             // playernames for this connectionentry.
             Data.IgnoreList.Clear();
-            Data.IgnoreList.AddRange(Config.SelectedConnectionInfo.IgnoreList);
+            Data.IgnoreList.AddRange( Config.SelectedConnectionInfo.IgnoreList );
 
             // fill groups list in datacontroller with
             // groups for this connectionentry
             Data.Groups.Clear();
-            Data.Groups.AddRange(Config.SelectedConnectionInfo.Groups);
+            Data.Groups.AddRange( Config.SelectedConnectionInfo.Groups );
 
             // connect to server
             ServerConnection.Connect(
-                Config.SelectedConnectionInfo.Host, 
-                Config.SelectedConnectionInfo.Port);
+                Config.SelectedConnectionInfo.Host,
+                Config.SelectedConnectionInfo.Port );
         }
 
         /// <summary>
@@ -158,14 +159,14 @@ namespace Meridian59.Client
         public override void Init()
         {
             // init the legacy resources
-		    ResourceManager.Init(
-			    Config.ResourcesPath + "/" + Meridian59.Files.ResourceManager.SUBPATHSTRINGS,
-			    Config.ResourcesPath + "/" + Meridian59.Files.ResourceManager.SUBPATHROOMS,
-			    Config.ResourcesPath + "/" + Meridian59.Files.ResourceManager.SUBPATHOBJECTS,
-			    Config.ResourcesPath + "/" + Meridian59.Files.ResourceManager.SUBPATHROOMTEXTURES,
-			    Config.ResourcesPath + "/" + Meridian59.Files.ResourceManager.SUBPATHSOUNDS,
-			    Config.ResourcesPath + "/" + Meridian59.Files.ResourceManager.SUBPATHMUSIC,
-                Config.ResourcesPath + "/" + Meridian59.Files.ResourceManager.SUBPATHMAILS);
+            ResourceManager.Init(
+                Config.ResourcesPath + "/" + Meridian59.Files.ResourceManager.SUBPATHSTRINGS,
+                Config.ResourcesPath + "/" + Meridian59.Files.ResourceManager.SUBPATHROOMS,
+                Config.ResourcesPath + "/" + Meridian59.Files.ResourceManager.SUBPATHOBJECTS,
+                Config.ResourcesPath + "/" + Meridian59.Files.ResourceManager.SUBPATHROOMTEXTURES,
+                Config.ResourcesPath + "/" + Meridian59.Files.ResourceManager.SUBPATHSOUNDS,
+                Config.ResourcesPath + "/" + Meridian59.Files.ResourceManager.SUBPATHMUSIC,
+                Config.ResourcesPath + "/" + Meridian59.Files.ResourceManager.SUBPATHMAILS );
         }
 
         /// <summary>
@@ -177,11 +178,11 @@ namespace Meridian59.Client
             ProcessQueues();
 
             // update room (wallside animations, movements, ...)
-            if (CurrentRoom != null)
-                CurrentRoom.Tick(GameTick.Current, GameTick.Span);
+            if ( CurrentRoom != null )
+                CurrentRoom.Tick( GameTick.Current, GameTick.Span );
 
             // update data in datacontroller
-            Data.Tick(GameTick.Current, GameTick.Span);
+            Data.Tick( GameTick.Current, GameTick.Span );
 
             // update the TPS value
             UpdateTPS();
@@ -189,12 +190,20 @@ namespace Meridian59.Client
             // update RTT value
             Data.RTT = (uint)ServerConnection.RTT;
 
-            if (Data.AvatarObject != null &&
-                Data.AvatarObject.IsMoving)
+            if ( Data.AvatarObject != null )
             {
-                // possibly send a position update            
-                SendReqMoveMessage();
-            }  
+                if ( Data.AvatarObject.IsMoving )
+                {
+                    // possibly send a position update            
+                    SendReqMoveMessage();
+                }
+                if ( roomChanged )
+                {
+                    // possibly send a position update            
+                    roomChanged = false;
+                    SendReqTurnMessage(true);
+                }
+            }
         }
 
         /// <summary>
@@ -208,22 +217,22 @@ namespace Meridian59.Client
             tpsSum += GameTick.Span;
 
             // worse than worst
-            if (GameTick.Span > tickWorst)
+            if ( GameTick.Span > tickWorst )
                 tickWorst = GameTick.Span;
 
             // better than best
-            else if (GameTick.Span < tickBest)
+            else if ( GameTick.Span < tickBest )
                 tickBest = GameTick.Span;
 
-            if (GameTick.CanTPSMeasure())
+            if ( GameTick.CanTPSMeasure() )
             {
                 Data.TickWorst = tickWorst;
                 Data.TickBest = tickBest;
                 Data.TickAverage = tpsSum / (double)tpsCounter;
 
                 // calc tps based on processed ticks and span
-                Data.TPS = (uint)((Real)tpsCounter / ((Real)Math.Max(0.0001f, (Real)GameTick.SpanTPSMeasure) / (Real)Common.GameTick.MSINSECOND));
-                
+                Data.TPS = (uint)( (Real)tpsCounter / ( (Real)Math.Max( 0.0001f, (Real)GameTick.SpanTPSMeasure ) / (Real)Common.GameTick.MSINSECOND ) );
+
                 // reset tps measure
                 tpsCounter = 0;
                 tpsSum = 0.0f;
@@ -241,7 +250,7 @@ namespace Meridian59.Client
         /// through it ExceptionQueue
         /// </summary>
         protected abstract void OnServerConnectionException(Exception Error);
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -249,7 +258,7 @@ namespace Meridian59.Client
         /// <param name="e"></param>
         protected void OnActionButtonListChanged(object sender, ListChangedEventArgs e)
         {
-            switch (e.ListChangedType)
+            switch ( e.ListChangedType )
             {
                 case ListChangedType.ItemAdded:
                     Data.ActionButtons[e.NewIndex].Activated += OnActionButtonActivated;
@@ -270,20 +279,20 @@ namespace Meridian59.Client
         {
             ActionButtonConfig button = (ActionButtonConfig)sender;
 
-            if (button.Data != null)
+            if ( button.Data != null )
             {
-                switch (button.ButtonType)
+                switch ( button.ButtonType )
                 {
                     case ActionButtonType.Action:
-                        ExecAction((AvatarAction)button.Data);
+                        ExecAction( (AvatarAction)button.Data );
                         break;
 
                     case ActionButtonType.Item:
-                        UseUnuseApply((InventoryObject)button.Data);
+                        UseUnuseApply( (InventoryObject)button.Data );
                         break;
 
                     case ActionButtonType.Spell:
-                        SendReqCastMessage((SpellObject)button.Data);
+                        SendReqCastMessage( (SpellObject)button.Data );
                         break;
                 }
             }
@@ -294,19 +303,19 @@ namespace Meridian59.Client
         /// </summary>
         protected override void Cleanup()
         {
-            if (MessageEnrichment != null)
+            if ( MessageEnrichment != null )
             {
                 MessageEnrichment.IsRunning = false;
                 MessageEnrichment = null;
             }
 
-            if (ServerConnection != null)
+            if ( ServerConnection != null )
             {
                 ServerConnection.Disconnect();
                 ServerConnection = null;
             }
 
-            if (DownloadHandler != null)
+            if ( DownloadHandler != null )
             {
                 DownloadHandler.Dispose();
                 DownloadHandler = null;
@@ -325,16 +334,16 @@ namespace Meridian59.Client
             GameMessage message;
 
             // Handle all exceptions from networkclient
-            while (ServerConnection.ExceptionQueue.TryDequeue(out error))          
-                OnServerConnectionException(error);
+            while ( ServerConnection.ExceptionQueue.TryDequeue( out error ) )
+                OnServerConnectionException( error );
 
             // Handle the outgoing MessageLog (debug for sent packets)
-            while (ServerConnection.OutgoingPacketLog.TryDequeue(out message))
-                Data.LogOutgoingPacket(message); 
-               
+            while ( ServerConnection.OutgoingPacketLog.TryDequeue( out message ) )
+                Data.LogOutgoingPacket( message );
+
             // Handle all pending incoming messages done from enrichment
-            while (MessageEnrichment.OutputQueue.TryDequeue(out message))          
-                HandleGameMessage(message);       
+            while ( MessageEnrichment.OutputQueue.TryDequeue( out message ) )
+                HandleGameMessage( message );
         }
 
         #endregion
@@ -346,42 +355,42 @@ namespace Meridian59.Client
         /// <param name="Message"></param>
         protected override void HandleLoginModeMessage(LoginModeMessage Message)
         {
-            switch ((MessageTypeLoginMode)Message.PI)
+            switch ( (MessageTypeLoginMode)Message.PI )
             {
                 case MessageTypeLoginMode.GetClient:                        // 7
-                    HandleGetClientMessage((GetClientMessage)Message);
+                    HandleGetClientMessage( (GetClientMessage)Message );
                     break;
 
                 case MessageTypeLoginMode.ClientPatch:                      // 12
-                    HandleClientPatchMessage((ClientPatchMessage)Message);
+                    HandleClientPatchMessage( (ClientPatchMessage)Message );
                     break;
 
                 case MessageTypeLoginMode.GetLogin:                         // 21
-                    HandleGetLoginMessage((GetLoginMessage)Message);
+                    HandleGetLoginMessage( (GetLoginMessage)Message );
                     break;
 
                 case MessageTypeLoginMode.GetChoice:                        // 22
-                    HandleGetChoiceMessage((GetChoiceMessage)Message);
+                    HandleGetChoiceMessage( (GetChoiceMessage)Message );
                     break;
 
                 case MessageTypeLoginMode.LoginOK:                          // 23
-                    HandleLoginOKMessage((LoginOKMessage)Message);
+                    HandleLoginOKMessage( (LoginOKMessage)Message );
                     break;
 
                 case MessageTypeLoginMode.LoginFailed:                      // 24
-                    HandleLoginFailedMessage((LoginFailedMessage)Message);
+                    HandleLoginFailedMessage( (LoginFailedMessage)Message );
                     break;
 
                 case MessageTypeLoginMode.Download:                         // 31
-                    HandleDownloadMessage((DownloadMessage)Message);
+                    HandleDownloadMessage( (DownloadMessage)Message );
                     break;
 
                 case MessageTypeLoginMode.Message:                          // 34
-                    HandleLoginModeMessageMessage((LoginModeMessageMessage)Message);
+                    HandleLoginModeMessageMessage( (LoginModeMessageMessage)Message );
                     break;
 
                 case MessageTypeLoginMode.NoCharacters:                     // 37
-                    HandleNoCharactersMessage((NoCharactersMessage)Message);
+                    HandleNoCharactersMessage( (NoCharactersMessage)Message );
                     break;
             }
         }
@@ -392,70 +401,70 @@ namespace Meridian59.Client
         /// <param name="Message"></param>
         protected override void HandleGameModeMessage(GameModeMessage Message)
         {
-            switch ((MessageTypeGameMode)Message.PI)
+            switch ( (MessageTypeGameMode)Message.PI )
             {
                 case MessageTypeGameMode.Wait:                              // 21
-                    HandleWaitMessage((WaitMessage)Message);
+                    HandleWaitMessage( (WaitMessage)Message );
                     break;
 
                 case MessageTypeGameMode.Message:                           // 32
-                    HandleMessageMessage((MessageMessage)Message);
+                    HandleMessageMessage( (MessageMessage)Message );
                     break;
 
                 case MessageTypeGameMode.CharInfoOk:                        // 56
-                    HandleCharInfoOKMessage((CharInfoOkMessage)Message);
+                    HandleCharInfoOKMessage( (CharInfoOkMessage)Message );
                     break;
-                
+
                 case MessageTypeGameMode.LoadModule:                        // 58
-                    HandleLoadModuleMessage((LoadModuleMessage)Message);
+                    HandleLoadModuleMessage( (LoadModuleMessage)Message );
                     break;
 
                 case MessageTypeGameMode.Mail:                              // 80
-                    HandleMailMessage((MailMessage)Message);
+                    HandleMailMessage( (MailMessage)Message );
                     break;
 
                 case MessageTypeGameMode.Player:                            // 130
-                    HandlePlayerMessage((PlayerMessage)Message);
+                    HandlePlayerMessage( (PlayerMessage)Message );
                     break;
 
                 case MessageTypeGameMode.Characters:                        // 139
-                    HandleCharactersMessage((CharactersMessage)Message);
+                    HandleCharactersMessage( (CharactersMessage)Message );
                     break;
 
                 case MessageTypeGameMode.Quit:                              // 149
-                    HandleQuitMessage((QuitMessage)Message);
+                    HandleQuitMessage( (QuitMessage)Message );
                     break;
 
                 case MessageTypeGameMode.UserCommand:                       // 155
-                    HandleUserCommandMessage((UserCommandMessage)Message);
+                    HandleUserCommandMessage( (UserCommandMessage)Message );
                     break;
 
                 case MessageTypeGameMode.PasswordOK:                        // 160
-                    HandlePasswordOKMessage((PasswordOKMessage)Message);
+                    HandlePasswordOKMessage( (PasswordOKMessage)Message );
                     break;
 
                 case MessageTypeGameMode.PasswordNotOK:                     // 161
-                    HandlePasswordNotOKMessage((PasswordNotOKMessage)Message);
+                    HandlePasswordNotOKMessage( (PasswordNotOKMessage)Message );
                     break;
 
                 case MessageTypeGameMode.Admin:                             // 162
-                    HandleAdminMessage((AdminMessage)Message);
+                    HandleAdminMessage( (AdminMessage)Message );
                     break;
 
                 case MessageTypeGameMode.LookNewsGroup:                     // 180
-                    HandleLookNewsGroupMessage((LookNewsGroupMessage)Message);
+                    HandleLookNewsGroupMessage( (LookNewsGroupMessage)Message );
                     break;
 
                 case MessageTypeGameMode.LookupNames:                       // 190
-                    HandleLookupNamesMessage((LookupNamesMessage)Message);
+                    HandleLookupNamesMessage( (LookupNamesMessage)Message );
                     break;
 
                 case MessageTypeGameMode.Said:                              // 206
-                    HandleSaidMessage((SaidMessage)Message);
+                    HandleSaidMessage( (SaidMessage)Message );
                     break;
 
                 case MessageTypeGameMode.InvalidateData:                    // 228
-                    HandleInvalidateDataMessage((InvalidateDataMessage)Message);
+                    HandleInvalidateDataMessage( (InvalidateDataMessage)Message );
                     break;
             }
         }
@@ -484,7 +493,7 @@ namespace Meridian59.Client
             Data.UIMode = UIMode.Download;
 
             // Download current Patcher executable and start it
-            DownloadHandler.DownloadClientPatcher(Message.ClientPatchInfo);
+            DownloadHandler.DownloadClientPatcher( Message.ClientPatchInfo );
         }
 
         /// <summary>
@@ -515,7 +524,7 @@ namespace Meridian59.Client
         /// <param name="Message"></param>
         protected virtual void HandleLoginFailedMessage(LoginFailedMessage Message)
         {
-            if (ServerConnection != null)
+            if ( ServerConnection != null )
                 ServerConnection.Disconnect();
         }
 
@@ -525,7 +534,7 @@ namespace Meridian59.Client
         /// <param name="Message"></param>
         protected virtual void HandleNoCharactersMessage(NoCharactersMessage Message)
         {
-            if (ServerConnection != null)
+            if ( ServerConnection != null )
                 ServerConnection.Disconnect();
         }
 
@@ -534,14 +543,14 @@ namespace Meridian59.Client
         /// (i.e. account blocked, maintenance...)
         /// </summary>
         /// <param name="Message"></param>
-        protected abstract void HandleLoginModeMessageMessage(LoginModeMessageMessage Message);     
+        protected abstract void HandleLoginModeMessageMessage(LoginModeMessageMessage Message);
 
         /// <summary>
         /// Overwrite with your code for a mismatch resources situation (update/download)
         /// </summary>
         /// <param name="Message"></param>
         protected virtual void HandleDownloadMessage(DownloadMessage Message)
-        {          
+        {
         }
         #endregion
 
@@ -553,7 +562,7 @@ namespace Meridian59.Client
         /// <param name="Message"></param>
         protected virtual void HandleCharInfoOKMessage(CharInfoOkMessage Message)
         {
-            SendUseCharacterMessage(new ObjectID(Message.CharacterID), true);            
+            SendUseCharacterMessage( new ObjectID( Message.CharacterID ), true );
 #if VANILLA
             SendUserCommandSafetyMessage(true);
 #else
@@ -573,11 +582,11 @@ namespace Meridian59.Client
              * 
              * if something goes wrong here, connection establishing may hang
              */
-            
+
             string modulefile;
-            if (ResourceManager.StringResources.TryGetValue(Message.ResourceID, out modulefile, LanguageCode.English))
+            if ( ResourceManager.StringResources.TryGetValue( Message.ResourceID, out modulefile, LanguageCode.English ) )
             {
-                if (String.Equals(modulefile, CHARDLL))
+                if ( String.Equals( modulefile, CHARDLL ) )
                 {
                     SendSendCharactersMessage();
                 }
@@ -591,11 +600,11 @@ namespace Meridian59.Client
         protected virtual void HandleMailMessage(MailMessage Message)
         {
             // no new mails
-            if (Message.Mail.IsMessageForNoMessages())
+            if ( Message.Mail.IsMessageForNoMessages() )
                 return;
 
             // request to delete this mail now that we've downloaded it
-            SendDeleteMail(Message.Mail.Num);
+            SendDeleteMail( Message.Mail.Num );
 
             // update the num to our local next one
             Message.Mail.Num = ResourceManager.Mails.GetMaximumNum() + 1;
@@ -605,7 +614,7 @@ namespace Meridian59.Client
             Message.Mail.IsTimestampUpdated = true;
 #endif
             // add it to our list (will trigger a save to disk)
-            ResourceManager.Mails.Add(Message.Mail);
+            ResourceManager.Mails.Add( Message.Mail );
         }
 
         /// <summary>
@@ -617,11 +626,12 @@ namespace Meridian59.Client
             // see if this is a reuse of once loaded room, if so reset it to inital values
             // and resolve again in mainthread, message-enrichment couldn't touch it due to possible in-use
             RooFile rooFile = Message.RoomInfo.ResourceRoom;
-            if (rooFile != null && rooFile.IsResourcesResolved)
+            if ( rooFile != null && rooFile.IsResourcesResolved )
             {
-               rooFile.Reset();
-               rooFile.ResolveResources(ResourceManager);
-               rooFile.UncompressAll();
+                roomChanged = true;
+                rooFile.Reset();
+                rooFile.ResolveResources( ResourceManager );
+                rooFile.UncompressAll();
             }
         }
 
@@ -669,7 +679,7 @@ namespace Meridian59.Client
             OnlinePlayer player = Data.OnlinePlayers.GetItemByID(Message.Message.SourceObjectID);
 
             // skip ignored players
-            if (player != null && Data.IgnoreList.Contains(player.Name))
+            if ( player != null && Data.IgnoreList.Contains( player.Name ) )
                 return;
         }
 
@@ -679,7 +689,7 @@ namespace Meridian59.Client
         /// <param name="Message"></param>
         protected virtual void HandleUserCommandMessage(UserCommandMessage Message)
         {
-            switch (Message.Command.CommandType)
+            switch ( Message.Command.CommandType )
             {
                 case UserCommandType.SendQuit:
                     SendReqQuit();
@@ -721,7 +731,7 @@ namespace Meridian59.Client
         /// <param name="Message"></param>
         protected virtual void HandlePasswordOKMessage(PasswordOKMessage Message)
         {
-            
+
         }
 
         /// <summary>
@@ -730,7 +740,6 @@ namespace Meridian59.Client
         /// <param name="Message"></param>
         protected virtual void HandlePasswordNotOKMessage(PasswordNotOKMessage Message)
         {
-
         }
 
         /// <summary>
@@ -750,7 +759,7 @@ namespace Meridian59.Client
         public override void SendGameMessage(GameMessage Message)
         {
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(Message);
+            ServerConnection.SendQueue.Enqueue( Message );
         }
 
         /// <summary>
@@ -767,9 +776,9 @@ namespace Meridian59.Client
                 LoginMessage.WINTYPE_NT, 6, 1, 512000000, LoginMessage.CPUTYPE_PENTIUM,
                 MeridianExeCRCs.NEWCLIENTDETECT,
                 1024, 768, 0, 0, 32, 30, 0);
-            
+
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -779,13 +788,13 @@ namespace Meridian59.Client
         {
             // create message instance
             ReqGameStateMessage message = new ReqGameStateMessage(
-                Config.ResourcesVersion, 
-                AppVersionMajor, 
-                AppVersionMinor, 
+                Config.ResourcesVersion,
+                AppVersionMajor,
+                AppVersionMinor,
                 String.Empty);
-            
+
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -797,7 +806,7 @@ namespace Meridian59.Client
             SendCharactersMessage message = new SendCharactersMessage();
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -812,14 +821,14 @@ namespace Meridian59.Client
             UseCharacterMessage message = new UseCharacterMessage(ID);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
 
             // request all basic gameinfo
             // like known spells, inventory, current stats, condition, ...
-            if (RequestBasicInfo)           
+            if ( RequestBasicInfo )
                 RequestInfoAfterLogin();
 
-            if (Name == null)
+            if ( Name == null )
                 Name = String.Empty;
 
             // prepare actionbuttons
@@ -839,13 +848,13 @@ namespace Meridian59.Client
         public virtual void SendUseCharacterMessage(int Index, bool RequestBasicInfo = true)
         {
             // valid?
-            if (Index > -1 && Data.WelcomeInfo.Characters.Count > Index)
+            if ( Index > -1 && Data.WelcomeInfo.Characters.Count > Index )
             {
                 // get character at this index
                 CharSelectItem item = Data.WelcomeInfo.Characters[Index];
 
                 // use other sender
-                SendUseCharacterMessage(new ObjectID(item.ID), RequestBasicInfo, item.Name);
+                SendUseCharacterMessage( new ObjectID( item.ID ), RequestBasicInfo, item.Name );
             }
         }
 
@@ -859,7 +868,7 @@ namespace Meridian59.Client
             SendStatsMessage message = new SendStatsMessage(Type);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -871,7 +880,7 @@ namespace Meridian59.Client
             ReqInventoryMessage message = new ReqInventoryMessage();
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -884,7 +893,7 @@ namespace Meridian59.Client
             SendEnchantmentsMessage message = new SendEnchantmentsMessage(Type);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -896,7 +905,7 @@ namespace Meridian59.Client
             SendSpellsMessage message = new SendSpellsMessage();
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -908,7 +917,7 @@ namespace Meridian59.Client
             SendSkillsMessage message = new SendSkillsMessage();
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -921,7 +930,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(UserCommand, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 #if VANILLA
         /// <summary>
@@ -949,13 +958,13 @@ namespace Meridian59.Client
         public virtual void SendUserCommandSendPreferences()
         {
             // create message instance
-           UserCommandSendPreferences userCommand = new UserCommandSendPreferences(
+            UserCommandSendPreferences userCommand = new UserCommandSendPreferences(
                new PreferencesFlags(Data.ClientPreferences.Value));
 
-           UserCommandMessage message = new UserCommandMessage(userCommand, null);
-            
+            UserCommandMessage message = new UserCommandMessage(userCommand, null);
+
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -968,7 +977,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(userCommand, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 #endif
         /// <summary>
@@ -982,7 +991,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(userCommand, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -996,7 +1005,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(userCommand, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1009,7 +1018,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(userCommand, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1022,7 +1031,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1035,7 +1044,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1048,7 +1057,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1061,7 +1070,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1075,7 +1084,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1089,7 +1098,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1104,7 +1113,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1118,7 +1127,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1126,14 +1135,14 @@ namespace Meridian59.Client
         /// </summary>
         public virtual void SendUserCommandGuildInvite()
         {
-            if (Data.TargetObject != null)
+            if ( Data.TargetObject != null )
             {
                 // create message instance
                 UserCommand command = new UserCommandGuildInvite(new ObjectID(Data.TargetObject.ID));
                 UserCommandMessage message = new UserCommandMessage(command, null);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
             }
         }
 
@@ -1147,7 +1156,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1168,13 +1177,13 @@ namespace Meridian59.Client
         /// </summary>
         /// <param name="Password"></param>
         public virtual void SendUserCommandGuildSetPassword(string Password)
-        {          
+        {
             // create message instance
             UserCommand command = new UserCommandGuildSetPassword(Password);
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);           
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1187,7 +1196,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1200,7 +1209,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1213,7 +1222,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1228,7 +1237,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1242,7 +1251,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1256,7 +1265,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1270,7 +1279,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1284,7 +1293,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1304,7 +1313,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1324,22 +1333,22 @@ namespace Meridian59.Client
         /// <param name="SecretGuild"></param>
         public virtual void SendUserCommandGuildCreate(
             string GuildName,
-            string Rank1Male, string Rank2Male, string Rank3Male, string Rank4Male, string Rank5Male, 
-            string Rank1Female, string Rank2Female, string Rank3Female, string Rank4Female, string Rank5Female, 
+            string Rank1Male, string Rank2Male, string Rank3Male, string Rank4Male, string Rank5Male,
+            string Rank1Female, string Rank2Female, string Rank3Female, string Rank4Female, string Rank5Female,
             bool SecretGuild)
         {
             // create user command
             UserCommand command = new UserCommandGuildCreate(
                 GuildName,
-                Rank1Male, Rank2Male, Rank3Male, Rank4Male, Rank5Male, 
-                Rank1Female, Rank2Female, Rank3Female, Rank4Female, Rank5Female, 
+                Rank1Male, Rank2Male, Rank3Male, Rank4Male, Rank5Male,
+                Rank1Female, Rank2Female, Rank3Female, Rank4Female, Rank5Female,
                 SecretGuild);
 
             // create message
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1347,14 +1356,14 @@ namespace Meridian59.Client
         /// </summary>
         public virtual void SendUserCommandRest()
         {
-            if (GameTick.CanReqUserCommand())
+            if ( GameTick.CanReqUserCommand() )
             {
                 // create message instance
                 UserCommand command = new UserCommandRest();
                 UserCommandMessage message = new UserCommandMessage(command, null);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
                 // mark resting
                 Data.IsResting = true;
@@ -1369,14 +1378,14 @@ namespace Meridian59.Client
         /// </summary>
         public virtual void SendUserCommandStand()
         {
-            if (GameTick.CanReqUserCommand())
+            if ( GameTick.CanReqUserCommand() )
             {
                 // create message instance
                 UserCommand command = new UserCommandStand();
                 UserCommandMessage message = new UserCommandMessage(command, null);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
                 // mark not resting anymore
                 Data.IsResting = false;
@@ -1392,14 +1401,14 @@ namespace Meridian59.Client
         /// <param name="URL"></param>
         public virtual void SendUserCommandChangeURL(string URL)
         {
-            if (URL != null && ObjectID.IsValid(Data.AvatarID))
+            if ( URL != null && ObjectID.IsValid( Data.AvatarID ) )
             {
                 // create message instance
                 UserCommand command = new UserCommandChangeURL(Data.AvatarID, URL);
                 UserCommandMessage message = new UserCommandMessage(command, null);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
             }
         }
 
@@ -1407,13 +1416,13 @@ namespace Meridian59.Client
         /// WARNING: This will delete your current avatar.
         /// </summary>
         public virtual void SendUserCommandSuicide()
-        {         
+        {
             // create message instance
             UserCommand command = new UserCommandSuicide();
             UserCommandMessage message = new UserCommandMessage(command, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);            
+            ServerConnection.SendQueue.Enqueue( message );
         }
 #if !VANILLA
         /// <summary>
@@ -1421,12 +1430,12 @@ namespace Meridian59.Client
         /// </summary>
         public virtual void SendUserCommandReqPreferences()
         {
-           // create message instance
-           UserCommand command = new UserCommandReqPreferences();
-           UserCommandMessage message = new UserCommandMessage(command, null);
+            // create message instance
+            UserCommand command = new UserCommandReqPreferences();
+            UserCommandMessage message = new UserCommandMessage(command, null);
 
-           // send/enqueue it (async)
-           ServerConnection.SendQueue.Enqueue(message);
+            // send/enqueue it (async)
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1441,7 +1450,7 @@ namespace Meridian59.Client
                 FromID, ToID);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
 #endif
@@ -1451,19 +1460,19 @@ namespace Meridian59.Client
         /// <param name="Action"></param>
         public virtual void SendActionMessage(ActionType Action)
         {
-            if (GameTick.CanReqAction())
+            if ( GameTick.CanReqAction() )
             {
                 // create message instance
                 ActionMessage message = new ActionMessage(Action);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
                 // save tick
                 GameTick.DidReqAction();
             }
         }
-      
+
         /// <summary>
         /// Requests to hit your current target or highlighted target
         /// </summary>
@@ -1476,8 +1485,8 @@ namespace Meridian59.Client
             // try to get matching object
             ObjectBase obj = Data.GetInteractObject(false, false, attackFlags);
 
-            if (obj != null)
-                SendReqAttackMessage(obj.ID);
+            if ( obj != null )
+                SendReqAttackMessage( obj.ID );
         }
 
         /// <summary>
@@ -1488,9 +1497,9 @@ namespace Meridian59.Client
         {
             // try get it from list
             RoomObject roomObject = Data.RoomObjects.GetItemByID(ID);
-            
+
             // call other handler (handles null)
-            SendReqAttackMessage(roomObject);
+            SendReqAttackMessage( roomObject );
         }
 
         /// <summary>
@@ -1502,22 +1511,22 @@ namespace Meridian59.Client
             // src is our avatar
             RoomObject avatar = Data.AvatarObject;
 
-            if (Target != null && avatar != null && GameTick.CanReqAttack())
+            if ( Target != null && avatar != null && GameTick.CanReqAttack() )
             {
                 V3 pos3D = avatar.Position3D;
 
                 // verify the object is visible
                 //if (Target.IsVisibleFrom(ref pos3D, CurrentRoom))
                 //{
-                    // create message instance
-                    ReqAttackMessage message = new ReqAttackMessage(
+                // create message instance
+                ReqAttackMessage message = new ReqAttackMessage(
                         ReqAttackMessage.ATTACK_NORMAL, Target.ID);
 
-                    // send/enqueue it (async)
-                    ServerConnection.SendQueue.Enqueue(message);
+                // send/enqueue it (async)
+                ServerConnection.SendQueue.Enqueue( message );
 
-                    // save tick we last sent an update
-                    GameTick.DidReqAttack();
+                // save tick we last sent an update
+                GameTick.DidReqAttack();
                 //}
             }
         }
@@ -1528,14 +1537,14 @@ namespace Meridian59.Client
         /// <param name="SendPositionBefore"></param>
         public virtual void SendReqGo(bool SendPositionBefore = true)
         {
-            if (SendPositionBefore)           
-                SendReqMoveMessage(true);
-                        
+            if ( SendPositionBefore )
+                SendReqMoveMessage( true );
+
             // create message instance
             ReqGoMessage message = new ReqGoMessage();
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1547,7 +1556,7 @@ namespace Meridian59.Client
         public virtual void SendReqTurnMessage(ushort Angle, uint ID, bool Forced = false)
         {
 #if !VANILLA && !OPENMERIDIAN
-            if (Forced || (GameTick.CanReqTurn() && GameTick.CanReqMove()))
+            if ( Forced || ( GameTick.CanReqTurn() && GameTick.CanReqMove() ) )
 #else
             if (Forced || GameTick.CanReqTurn())
 #endif
@@ -1556,7 +1565,7 @@ namespace Meridian59.Client
                 ReqTurnMessage message = new ReqTurnMessage(Angle, ID);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
                 // save tick we last sent an update
                 GameTick.DidReqTurn();
@@ -1570,8 +1579,8 @@ namespace Meridian59.Client
         /// <param name="Forced">True ignores the delay checker</param>
         public virtual void SendReqTurnMessage(bool Forced = false)
         {
-            if (Data.AvatarObject != null)
-                SendReqTurnMessage(Data.AvatarObject.AngleUnits, Data.AvatarID, Forced);
+            if ( Data.AvatarObject != null )
+                SendReqTurnMessage( Data.AvatarObject.AngleUnits, Data.AvatarID, Forced );
         }
 
         /// <summary>
@@ -1584,20 +1593,20 @@ namespace Meridian59.Client
         /// <param name="ForceSend"></param>
         public virtual void SendReqMoveMessage(ushort X, ushort Y, byte Speed, ushort Angle, bool ForceSend = false)
         {
-            if (Data.Effects.Paralyze.IsActive ||
+            if ( Data.Effects.Paralyze.IsActive ||
                 Data.IsResting ||
-                Data.IsWaiting)
+                Data.IsWaiting )
                 return;
 
             // check for updaterate limit or override flag
-            if ((ForceSend && GameTick.SpanReqMove > 0) || GameTick.CanReqMove())
+            if ( ( ForceSend && GameTick.SpanReqMove > 0 ) || GameTick.CanReqMove() )
             {
                 // create message instance
                 ReqMoveMessage message = new ReqMoveMessage(
                     X, Y, (MovementSpeed)Speed, Data.RoomInformation.RoomID, Angle);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
                 // save tick we last sent an update
                 GameTick.DidReqMove();
@@ -1612,7 +1621,7 @@ namespace Meridian59.Client
         public virtual void SendReqMoveMessage(bool ForceSend = false)
         {
             // must have an avatar object
-            if (Data.AvatarObject == null)
+            if ( Data.AvatarObject == null )
                 return;
 
             // use horizontalspeed or default to RUN for TELEPORT (0)
@@ -1625,7 +1634,7 @@ namespace Meridian59.Client
                 Data.AvatarObject.CoordinateY,
                 speed,
                 Data.AvatarObject.AngleUnits,
-                ForceSend);           
+                ForceSend );
         }
 
         /// <summary>
@@ -1637,8 +1646,8 @@ namespace Meridian59.Client
             // try to get matching object
             ObjectBase obj = Data.GetInteractObject();
 
-            if (obj != null)
-                SendReqLookMessage(obj.ID);
+            if ( obj != null )
+                SendReqLookMessage( obj.ID );
         }
 
         /// <summary>
@@ -1647,15 +1656,15 @@ namespace Meridian59.Client
         /// <param name="ID"></param>
         public virtual void SendReqLookMessage(uint ID)
         {
-            if (ObjectID.IsValid(ID) && GameTick.CanInteract(ID))
+            if ( ObjectID.IsValid( ID ) && GameTick.CanInteract( ID ) )
             {
                 // create message instance
                 ReqLookMessage message = new ReqLookMessage(new ObjectID(ID));
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
-                GameTick.DidInteract(ID);
+                GameTick.DidInteract( ID );
             }
         }
 
@@ -1667,11 +1676,11 @@ namespace Meridian59.Client
         public virtual void SendReqCastMessage(uint SpellID)
         {
             // try get spellobject for ID
-			SpellObject spellObject =
+            SpellObject spellObject =
                 Data.SpellObjects.GetItemByID(SpellID);
 
-            if (spellObject != null)
-                SendReqCastMessage(spellObject);
+            if ( spellObject != null )
+                SendReqCastMessage( spellObject );
         }
 
         /// <summary>
@@ -1684,24 +1693,24 @@ namespace Meridian59.Client
             ObjectBase[] targetIDs = null;
 
             // if the spell requires (at least) one target
-            if (Spell.TargetsCount > 0)
-            {               
+            if ( Spell.TargetsCount > 0 )
+            {
                 // target: highlighted
-                if (Data.IsNextAttackApplyCastOnHighlightedObject)
+                if ( Data.IsNextAttackApplyCastOnHighlightedObject )
                 {
                     targetIDs = new ObjectBase[1];
                     targetIDs[0] = Data.RoomObjects.GetHighlightedItem();
                 }
 
                 // target: self
-                else if (Data.SelfTarget)
+                else if ( Data.SelfTarget )
                 {
                     targetIDs = new ObjectBase[1];
                     targetIDs[0] = Data.AvatarObject;
                 }
 
                 // target: target (default)
-                else if (Data.TargetObject != null)
+                else if ( Data.TargetObject != null )
                 {
                     targetIDs = new ObjectBase[1];
                     targetIDs[0] = Data.TargetObject;
@@ -1709,52 +1718,52 @@ namespace Meridian59.Client
             }
 
             // room enchantments for example don't require a target
-            else          
+            else
                 targetIDs = new ObjectBase[0];
 
             // if we have proper target(s) for this spell
-            if (targetIDs != null)
+            if ( targetIDs != null )
             {
-                if (GameTick.CanReqCast())
+                if ( GameTick.CanReqCast() )
                 {
                     // send by default
                     bool send = true;
 
                     // if no non-target spell, verify view for roomobjects
-                    if (targetIDs.Length > 0)
+                    if ( targetIDs.Length > 0 )
                     {
                         // src is our avatar
                         RoomObject src = Data.AvatarObject;
 
-                        if (targetIDs[0] != null)
+                        if ( targetIDs[0] != null )
                         {
                             // verify the object is visible
-                            if (targetIDs[0] is RoomObject)
+                            if ( targetIDs[0] is RoomObject )
                             {
                                 V3 pos3D = src.Position3D;
-                                send = ((RoomObject)targetIDs[0]).IsVisibleFrom(ref pos3D, CurrentRoom);
+                                send = ( (RoomObject)targetIDs[0] ).IsVisibleFrom( ref pos3D, CurrentRoom );
                             }
 
                             // other objects are "always visible", e.g. inventory
                             else
                                 send = true;
                         }
-                        else 
-                            send = false;          
+                        else
+                            send = false;
                     }
 
                     // send or not to send
-                    if (send)
+                    if ( send )
                     {
                         ObjectID[] plainIDs = new ObjectID[targetIDs.Length];
-                        for (int i = 0; i < targetIDs.Length; i++)
-                            plainIDs[i] = new ObjectID(targetIDs[i].ID);
+                        for ( int i = 0; i < targetIDs.Length; i++ )
+                            plainIDs[i] = new ObjectID( targetIDs[i].ID );
 
                         // create message instance
                         ReqCastMessage message = new ReqCastMessage(Spell.ID, plainIDs);
 
                         // send/enqueue it (async)
-                        ServerConnection.SendQueue.Enqueue(message);
+                        ServerConnection.SendQueue.Enqueue( message );
 
                         // save tick we last sent an update
                         GameTick.DidReqCast();
@@ -1765,20 +1774,20 @@ namespace Meridian59.Client
             {
                 // don't spam feedback so
                 // create a delay like a cast
-                if (GameTick.CanReqCast())
+                if ( GameTick.CanReqCast() )
                 {
-                    Data.ChatMessages.Add(ServerString.GetServerStringForString(
-                        "This spell requires a target."));
+                    Data.ChatMessages.Add( ServerString.GetServerStringForString(
+                        "This spell requires a target." ) );
 
                     GameTick.DidReqCast();
                 }
             }
 
             // reset highlighted attack marker
-            if (Data.IsNextAttackApplyCastOnHighlightedObject)
+            if ( Data.IsNextAttackApplyCastOnHighlightedObject )
                 Data.IsNextAttackApplyCastOnHighlightedObject = false;
         }
-        
+
         /// <summary>
         /// Sends chatmessage as say, yell, broadcast, ...
         /// </summary>
@@ -1788,12 +1797,12 @@ namespace Meridian59.Client
         {
             // don't try to send admincommands if not admin
             // this gets logged, be warned :)         
-            if (Type == ChatTransmissionType.DM && !Data.IsAdminOrDM)
+            if ( Type == ChatTransmissionType.DM && !Data.IsAdminOrDM )
                 return;
 
             // get tick yesno
             bool canDo = true;
-            switch (Type)
+            switch ( Type )
             {
                 case ChatTransmissionType.Normal:
                     canDo = GameTick.CanSay();
@@ -1804,15 +1813,15 @@ namespace Meridian59.Client
                     break;
             }
 
-            if (canDo)
+            if ( canDo )
             {
                 // create message instance
                 SayToMessage message = new SayToMessage(Type, Text);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
-                switch (Type)
+                switch ( Type )
                 {
                     case ChatTransmissionType.Normal:
                         GameTick.DidSay();
@@ -1836,7 +1845,7 @@ namespace Meridian59.Client
             SayGroupMessage message = new SayGroupMessage(TargetIDs, Text);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1846,7 +1855,7 @@ namespace Meridian59.Client
         /// <param name="Text"></param>
         public virtual void SendSayGroupMessage(uint TargetID, string Text)
         {
-            SendSayGroupMessage(new uint[] { TargetID }, Text);
+            SendSayGroupMessage( new uint[] { TargetID }, Text );
         }
 
         /// <summary>
@@ -1860,7 +1869,7 @@ namespace Meridian59.Client
             UserCommandMessage message = new UserCommandMessage(userCommand, null);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -1869,16 +1878,16 @@ namespace Meridian59.Client
         /// <param name="ID"></param>
         public virtual void SendReqUseMessage(uint ID)
         {
-            if (ObjectID.IsValid(ID) && GameTick.CanInteract(ID))
+            if ( ObjectID.IsValid( ID ) && GameTick.CanInteract( ID ) )
             {
                 // create message instance
                 ReqUseMessage message = new ReqUseMessage(ID);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
                 // save tick
-                GameTick.DidInteract(ID);
+                GameTick.DidInteract( ID );
             }
         }
 
@@ -1891,19 +1900,19 @@ namespace Meridian59.Client
         /// </summary>
         /// <param name="ID">ID of inventory object to</param>
         public virtual void SendReqApply(uint ID)
-        {           
+        {
             // default invalid targetid
             uint targetID = UInt32.MaxValue;
 
             // target: highlighted
-            if (Data.IsNextAttackApplyCastOnHighlightedObject)
+            if ( Data.IsNextAttackApplyCastOnHighlightedObject )
             {
                 targetID = Data.RoomObjects.HighlightedID;
                 Data.IsNextAttackApplyCastOnHighlightedObject = false;
             }
 
             // target: self
-            else if (Data.SelfTarget)
+            else if ( Data.SelfTarget )
             {
                 targetID = Data.AvatarID;
             }
@@ -1915,15 +1924,15 @@ namespace Meridian59.Client
             }
 
             // verify IDs and delay
-            if (ObjectID.IsValid(ID) && ObjectID.IsValid(targetID) && GameTick.CanInteract(ID))
-            {                
+            if ( ObjectID.IsValid( ID ) && ObjectID.IsValid( targetID ) && GameTick.CanInteract( ID ) )
+            {
                 // create message instance
                 ReqApplyMessage message = new ReqApplyMessage(ID, targetID);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
-                GameTick.DidInteract(ID);
+                GameTick.DidInteract( ID );
             }
         }
 
@@ -1940,8 +1949,8 @@ namespace Meridian59.Client
             // try to get an object
             ObjectBase obj = Data.GetInteractObject(true, true, flags);
 
-            if (obj != null)
-                SendReqActivate(obj.ID);
+            if ( obj != null )
+                SendReqActivate( obj.ID );
         }
 
         /// <summary>
@@ -1950,16 +1959,16 @@ namespace Meridian59.Client
         /// <param name="ID"></param>
         public virtual void SendReqActivate(uint ID)
         {
-            if (ObjectID.IsValid(ID) && GameTick.CanInteract(ID))
+            if ( ObjectID.IsValid( ID ) && GameTick.CanInteract( ID ) )
             {
                 // create message instance
                 ReqActivateMessage message = new ReqActivateMessage(ID);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
                 // save tick
-                GameTick.DidInteract(ID);
+                GameTick.DidInteract( ID );
             }
         }
 
@@ -1969,16 +1978,16 @@ namespace Meridian59.Client
         /// <param name="ID"></param>
         public virtual void SendReqUnuseMessage(uint ID)
         {
-            if (ObjectID.IsValid(ID) && GameTick.CanInteract(ID))
+            if ( ObjectID.IsValid( ID ) && GameTick.CanInteract( ID ) )
             {
                 // create message instance
                 ReqUnuseMessage message = new ReqUnuseMessage(ID);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
                 // save tick
-                GameTick.DidInteract(ID);
+                GameTick.DidInteract( ID );
             }
         }
 
@@ -1988,16 +1997,16 @@ namespace Meridian59.Client
         /// <param name="ID"></param>
         public virtual void SendReqDropMessage(ObjectID ID)
         {
-            if (GameTick.CanInteract(ID.ID))
+            if ( GameTick.CanInteract( ID.ID ) )
             {
                 // create message instance
                 ReqDropMessage message = new ReqDropMessage(ID);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
                 // save tick
-                GameTick.DidInteract(ID.ID);
+                GameTick.DidInteract( ID.ID );
             }
         }
 
@@ -2013,15 +2022,15 @@ namespace Meridian59.Client
             // try get object to interact with
             ObjectBase obj = Data.GetInteractObject(true, true, flags);
 
-            if (obj != null && GameTick.CanInteract(obj.ID))
-            {            
+            if ( obj != null && GameTick.CanInteract( obj.ID ) )
+            {
                 // create message instance
                 ReqBuyMessage message = new ReqBuyMessage(obj.ID);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
-                GameTick.DidInteract(obj.ID);
+                GameTick.DidInteract( obj.ID );
             }
         }
 
@@ -2032,13 +2041,13 @@ namespace Meridian59.Client
         /// <param name="Items"></param>
         public virtual void SendReqBuyItemsMessage(uint TargetID, ObjectID[] Items)
         {
-            if (ObjectID.IsValid(TargetID))
+            if ( ObjectID.IsValid( TargetID ) )
             {
                 // create message instance
                 ReqBuyItemsMessage message = new ReqBuyItemsMessage(TargetID, Items);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
             }
         }
 
@@ -2048,15 +2057,15 @@ namespace Meridian59.Client
         /// <param name="Target"></param>
         public virtual void SendReqGetMessage(ObjectID Target)
         {
-            if (GameTick.CanInteract(Target.ID))
+            if ( GameTick.CanInteract( Target.ID ) )
             {
                 // create message instance
                 ReqGetMessage message = new ReqGetMessage(Target);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
-                GameTick.DidInteract(Target.ID);
+                GameTick.DidInteract( Target.ID );
             }
         }
 
@@ -2065,8 +2074,8 @@ namespace Meridian59.Client
         /// </summary>
         public virtual void SendReqGetMessage()
         {
-            if (ObjectID.IsValid(Data.TargetID))
-                SendReqGetMessage(new ObjectID(Data.TargetID));
+            if ( ObjectID.IsValid( Data.TargetID ) )
+                SendReqGetMessage( new ObjectID( Data.TargetID ) );
         }
 
         /// <summary>
@@ -2078,7 +2087,7 @@ namespace Meridian59.Client
             ReqAdminMessageLoginMode message = new ReqAdminMessageLoginMode();
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -2089,14 +2098,14 @@ namespace Meridian59.Client
         public virtual void SendReqAdminMessage(string Text)
         {
             // we don't want to trigger ALERTS on the server
-            if (!Data.IsAdminOrDM)
+            if ( !Data.IsAdminOrDM )
                 return;
 
             // create message instance
             ReqAdminMessage message = new ReqAdminMessage(Text);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -2109,7 +2118,7 @@ namespace Meridian59.Client
             ReqArticlesMessage message = new ReqArticlesMessage(NewsGroupID);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -2124,7 +2133,7 @@ namespace Meridian59.Client
             ReqArticlesMessage message = new ReqArticlesMessage(Data.NewsGroup.NewsGlobeID);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -2137,7 +2146,7 @@ namespace Meridian59.Client
                 Data.NewsGroup.NewsGlobeID, ArticleNum);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -2145,7 +2154,7 @@ namespace Meridian59.Client
         /// </summary>
         public virtual void SendReqArticle(uint ArticleNum)
         {
-            SendReqArticle(Data.NewsGroup.NewsGlobeID, ArticleNum);
+            SendReqArticle( Data.NewsGroup.NewsGlobeID, ArticleNum );
         }
 
         /// <summary>
@@ -2161,7 +2170,7 @@ namespace Meridian59.Client
                 GlobeID, Title, Text);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -2169,7 +2178,7 @@ namespace Meridian59.Client
         /// </summary>
         public virtual void SendReqOffer(ObjectID TradePartner, ObjectID[] OfferItems)
         {
-            if (TradePartner != null && OfferItems != null)
+            if ( TradePartner != null && OfferItems != null )
             {
                 // clone IDs for the case they are deriving classes
                 // and trigger wrong WriteTo serializer
@@ -2177,14 +2186,14 @@ namespace Meridian59.Client
                 ObjectID id = new ObjectID(TradePartner.ID);
                 ObjectID[] items = new ObjectID[OfferItems.Length];
 
-                for (int i = 0; i < OfferItems.Length; i++)
-                    items[i] = new ObjectID(OfferItems[i].ID, OfferItems[i].Count);
+                for ( int i = 0; i < OfferItems.Length; i++ )
+                    items[i] = new ObjectID( OfferItems[i].ID, OfferItems[i].Count );
 
                 // create message instance
                 ReqOfferMessage message = new ReqOfferMessage(id, items);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
                 // clear own items (will be echoed back)
                 Data.Trade.ItemsYou.Clear();
@@ -2206,7 +2215,7 @@ namespace Meridian59.Client
             ReqDepositMessage message = new ReqDepositMessage(Holder, Items);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -2214,21 +2223,21 @@ namespace Meridian59.Client
         /// </summary>
         public virtual void SendReqCounterOffer(ObjectID[] OfferItems)
         {
-            if (OfferItems != null)
+            if ( OfferItems != null )
             {
                 // clone IDs for the case they are deriving classes
                 // and trigger wrong WriteTo serializer
 
                 ObjectID[] items = new ObjectID[OfferItems.Length];
 
-                for (int i = 0; i < OfferItems.Length; i++)
-                    items[i] = new ObjectID(OfferItems[i].ID, OfferItems[i].Count);
+                for ( int i = 0; i < OfferItems.Length; i++ )
+                    items[i] = new ObjectID( OfferItems[i].ID, OfferItems[i].Count );
 
                 // create message instance
                 ReqCounterOfferMessage message = new ReqCounterOfferMessage(items);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
             }
         }
 
@@ -2240,13 +2249,13 @@ namespace Meridian59.Client
         {
             // get (copy) of currently selected data from datalayer
             StatChangeInfo info = new StatChangeInfo();
-            info.UpdateFromModel(Data.StatChangeInfo, false);
+            info.UpdateFromModel( Data.StatChangeInfo, false );
 
             // create message instance
             ChangedStatsMessage message = new ChangedStatsMessage(info);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 #endif
 
@@ -2260,10 +2269,10 @@ namespace Meridian59.Client
             AcceptOfferMessage message = new AcceptOfferMessage();
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
 
             // clear trade
-            Data.Trade.Clear(true);
+            Data.Trade.Clear( true );
         }
 
         /// <summary>
@@ -2276,10 +2285,10 @@ namespace Meridian59.Client
             CancelOfferMessage message = new CancelOfferMessage();
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
 
             // clear offered items
-            Data.Trade.Clear(true);
+            Data.Trade.Clear( true );
         }
 
         /// <summary>
@@ -2291,7 +2300,7 @@ namespace Meridian59.Client
             SendPlayerMessage message = new SendPlayerMessage();
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -2303,7 +2312,7 @@ namespace Meridian59.Client
             SendRoomContentsMessage message = new SendRoomContentsMessage();
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -2311,15 +2320,15 @@ namespace Meridian59.Client
         /// </summary>
         public virtual void SendSendObjectContents(uint ID)
         {
-            if (ObjectID.IsValid(ID) && GameTick.CanInteract(ID))
+            if ( ObjectID.IsValid( ID ) && GameTick.CanInteract( ID ) )
             {
                 // create message instance
                 SendObjectContentsMessage message = new SendObjectContentsMessage(ID);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
 
-                GameTick.DidInteract(ID);
+                GameTick.DidInteract( ID );
             }
         }
 
@@ -2336,8 +2345,8 @@ namespace Meridian59.Client
             // try get an object
             ObjectBase obj = Data.GetInteractObject(true, true, flags);
 
-            if (obj != null)
-                SendSendObjectContents(obj.ID);
+            if ( obj != null )
+                SendSendObjectContents( obj.ID );
         }
 
         /// <summary>
@@ -2351,7 +2360,7 @@ namespace Meridian59.Client
             ReqPutMessage message = new ReqPutMessage(Item, Target);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -2363,7 +2372,7 @@ namespace Meridian59.Client
             SendPlayersMessage message = new SendPlayersMessage();
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -2376,13 +2385,13 @@ namespace Meridian59.Client
             // don't try to send admincommands if not admin
             // this gets logged, be warned :)
 
-            if (Data.IsAdminOrDM)
+            if ( Data.IsAdminOrDM )
             {
                 // create message instance
                 ReqDMMessage message = new ReqDMMessage(Type, Text);
-                
+
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
             }
         }
 
@@ -2392,7 +2401,7 @@ namespace Meridian59.Client
         /// <param name="Description"></param>
         public virtual void SendChangeDescription(string Description)
         {
-            SendChangeDescription(Data.AvatarID, Description);
+            SendChangeDescription( Data.AvatarID, Description );
         }
 
         /// <summary>
@@ -2402,14 +2411,14 @@ namespace Meridian59.Client
         /// <param name="Description"></param>
         public virtual void SendChangeDescription(uint ID, string Description)
         {
-            if (ObjectID.IsValid(ID))
+            if ( ObjectID.IsValid( ID ) )
             {
                 // create message instance
                 ChangeDescriptionMessage message = new ChangeDescriptionMessage(
                     new ObjectID(ID), Description);
 
                 // send/enqueue it (async)
-                ServerConnection.SendQueue.Enqueue(message);
+                ServerConnection.SendQueue.Enqueue( message );
             }
         }
 
@@ -2427,7 +2436,7 @@ namespace Meridian59.Client
                 new SubMessageSendCharInfo());
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
 
             // update the slotID
             Data.CharCreationInfo.SlotID = SlotID;
@@ -2442,20 +2451,20 @@ namespace Meridian59.Client
             // create message instance
             SystemMessage message = new SystemMessage(
                 new SubMessageNewCharInfo(
-                    new ObjectID(Data.CharCreationInfo.SlotID), 
-                    Data.CharCreationInfo.AvatarName, 
-                    Data.CharCreationInfo.AvatarDescription, 
-                    (byte)Data.CharCreationInfo.Gender, 
-                    Data.CharCreationInfo.GetSelectedResourceIDs(), 
-                    Data.CharCreationInfo.HairColor, 
-                    Data.CharCreationInfo.SkinColor, 
+                    new ObjectID(Data.CharCreationInfo.SlotID),
+                    Data.CharCreationInfo.AvatarName,
+                    Data.CharCreationInfo.AvatarDescription,
+                    (byte)Data.CharCreationInfo.Gender,
+                    Data.CharCreationInfo.GetSelectedResourceIDs(),
+                    Data.CharCreationInfo.HairColor,
+                    Data.CharCreationInfo.SkinColor,
                     Data.CharCreationInfo.GetAttributesArray(),
                     Data.CharCreationInfo.GetSelectedSpellIDs(),
                     Data.CharCreationInfo.GetSelectedSkillIDs()
                     ));
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -2467,7 +2476,7 @@ namespace Meridian59.Client
             ReqQuitMessage message = new ReqQuitMessage();
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
 
             // flip to waiting like serversave
             Data.IsWaiting = true;
@@ -2483,7 +2492,7 @@ namespace Meridian59.Client
             DeleteMailMessage message = new DeleteMailMessage(Num);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 #if !VANILLA
         /// <summary>
@@ -2497,7 +2506,7 @@ namespace Meridian59.Client
             DeleteNewsMessage message = new DeleteNewsMessage(NewsGroupID, Num);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 #endif
         /// <summary>
@@ -2509,7 +2518,7 @@ namespace Meridian59.Client
             ReqGetMailMessage message = new ReqGetMailMessage();
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -2521,9 +2530,9 @@ namespace Meridian59.Client
         {
             // create message instance
             ReqLookupNamesMessage message = new ReqLookupNamesMessage(Names);
-            
+
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>
@@ -2541,7 +2550,7 @@ namespace Meridian59.Client
             SendMailMessage message = new SendMailMessage(RecipientIDs, str);
 
             // send/enqueue it (async)
-            ServerConnection.SendQueue.Enqueue(message);
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         #endregion
@@ -2554,10 +2563,10 @@ namespace Meridian59.Client
         protected void RequestInfoAfterLogin()
         {
             // request stats
-            SendSendStatsMessage(StatGroup.Condition);
-            SendSendStatsMessage(StatGroup.Attributes);
+            SendSendStatsMessage( StatGroup.Condition );
+            SendSendStatsMessage( StatGroup.Attributes );
 #if !VANILLA
-            SendSendStatsMessage(StatGroup.Quests);
+            SendSendStatsMessage( StatGroup.Quests );
             SendUserCommandReqPreferences();
 #endif
 
@@ -2573,7 +2582,7 @@ namespace Meridian59.Client
             SendSendSkillsMessage();
 
             // request buff states
-            SendSendEnchantmentsMessage(BuffType.AvatarBuff);
+            SendSendEnchantmentsMessage( BuffType.AvatarBuff );
         }
 
         /// <summary>
@@ -2608,14 +2617,14 @@ namespace Meridian59.Client
         public void TryMove(V2 Direction, byte Speed, Real PlayerHeight)
         {
             // no movements when resting or paralyzed
-            if (!Data.IsResting &&
+            if ( !Data.IsResting &&
                 !Data.Effects.Paralyze.IsActive &&
-                CurrentRoom != null)
+                CurrentRoom != null )
             {
                 // slow down movements to walkspeed if not enough vigor
-                if (Data.VigorPoints < StatNumsValues.LOWVIGOR && Speed > (byte)MovementSpeed.Walk)
+                if ( Data.VigorPoints < StatNumsValues.LOWVIGOR && Speed > (byte)MovementSpeed.Walk )
                     Speed = (byte)MovementSpeed.Walk;
-                
+
                 // avatar we're controlling
                 RoomObject avatar = Data.AvatarObject;
 
@@ -2630,50 +2639,50 @@ namespace Meridian59.Client
                 V2 step = Direction * (Real)Speed * (Real)GameTick.Span * GeometryConstants.MOVEBASECOEFF;
 
                 // slow down movements sectors with depth modifiers
-                if (avatar.SubSector != null && avatar.SubSector.Sector != null)
+                if ( avatar.SubSector != null && avatar.SubSector.Sector != null )
                 {
-                    switch(avatar.SubSector.Sector.Flags.SectorDepth)
+                    switch ( avatar.SubSector.Sector.Flags.SectorDepth )
                     {
                         case RooSectorFlags.DepthType.Depth0: break;
-                        case RooSectorFlags.DepthType.Depth1: step.Scale(0.75f); break;
-                        case RooSectorFlags.DepthType.Depth2: step.Scale(0.5f);  break;
-                        case RooSectorFlags.DepthType.Depth3: step.Scale(0.25f); break;
+                        case RooSectorFlags.DepthType.Depth1: step.Scale( 0.75f ); break;
+                        case RooSectorFlags.DepthType.Depth2: step.Scale( 0.5f ); break;
+                        case RooSectorFlags.DepthType.Depth3: step.Scale( 0.25f ); break;
                     }
                 }
 
                 // apply step on start ("end candidate")
                 V2 end = start2D + step;
-                
+
                 //// 1. VERIFY OBJECT COLLISION
 
                 // check against roomnodes which have nomoveon set
-                foreach (RoomObject obj in Data.RoomObjects)
+                foreach ( RoomObject obj in Data.RoomObjects )
                 {
                     // check if object should create collision
-                    if (!obj.IsAvatar &&
-                        obj.Flags.MoveOn == ObjectFlags.MoveOnType.No)
+                    if ( !obj.IsAvatar &&
+                        obj.Flags.MoveOn == ObjectFlags.MoveOnType.No )
                     {
                         V2 diff = obj.Position2D - start2D;
 
                         // care only about movements from outside to inside of blocking circle
-                        if (diff.LengthSquared > GeometryConstants.MIN_NOMOVEON2)
+                        if ( diff.LengthSquared > GeometryConstants.MIN_NOMOVEON2 )
                         {
                             V2 intersect;
                             V2 oPos = obj.Position2D;
 
                             // if intersection exists
-                            if (MathUtil.IntersectLineCircle(
+                            if ( MathUtil.IntersectLineCircle(
                                     ref start2D,
                                     ref end,
                                     ref oPos,
-                                    GeometryConstants.MIN_NOMOVEON, 
-                                    out intersect))
+                                    GeometryConstants.MIN_NOMOVEON,
+                                    out intersect ) )
                             {
                                 // get a perpendicular vector
                                 V2 perp = (obj.Position2D - intersect).GetPerpendicular1();
 
                                 // project step on perpendicular vector ("slide along")
-                                step = step.GetProjection(ref perp);
+                                step = step.GetProjection( ref perp );
 
                                 // update end
                                 end = start2D + step;
@@ -2688,7 +2697,7 @@ namespace Meridian59.Client
                 }
 
                 //// 2. VERIFY ROOM COLLISION
-                
+
                 // roo format variants
                 V3 rooStart = start.Clone();
                 V2 rooEnd = end.Clone();
@@ -2698,18 +2707,18 @@ namespace Meridian59.Client
                 rooEnd.ConvertToROO();
 
                 // check against roowalls (this can modify step)
-                step = CurrentRoom.VerifyMove(ref rooStart, ref rooEnd, PlayerHeight);
+                step = CurrentRoom.VerifyMove( ref rooStart, ref rooEnd, PlayerHeight );
 
                 // convert back to worldsize
-                step.Scale(0.0625f);
+                step.Scale( 0.0625f );
 
                 //// 3. APPLY MOVE
-               
+
                 // destination (might be the old)
                 end = start2D + step;
 
                 // start movement
-                avatar.StartMoveTo(ref end, Speed);
+                avatar.StartMoveTo( ref end, Speed );
             }
         }
 
@@ -2723,16 +2732,16 @@ namespace Meridian59.Client
         {
             RoomObject avatar = Data.AvatarObject;
 
-            if (avatar != null && !Data.Effects.Paralyze.IsActive)
+            if ( avatar != null && !Data.Effects.Paralyze.IsActive )
             {
-                if (Radian > 0)
-                    avatar.Angle += Math.Abs(Radian);
-                
+                if ( Radian > 0 )
+                    avatar.Angle += Math.Abs( Radian );
+
                 else
-                    avatar.Angle -= Math.Abs(Radian);
+                    avatar.Angle -= Math.Abs( Radian );
 
                 // possibly send update
-                SendReqTurnMessage(false);
+                SendReqTurnMessage( false );
 
                 return true;
             }
@@ -2748,21 +2757,21 @@ namespace Meridian59.Client
             RooFile room = Data.RoomInformation.ResourceRoom;
             RoomObject avatar = Data.AvatarObject;
 
-            if (room != null && avatar != null)
+            if ( room != null && avatar != null )
             {
                 // get visible objects within distances
                 List<RoomObject> candidates = avatar.GetObjectsWithinDistance(
-                    Data.RoomObjects, 
-                    room, 
-                    GeometryConstants.CLOSEDISTANCE, 
-                    GeometryConstants.CLOSEDISTANCE, 
+                    Data.RoomObjects,
+                    room,
+                    GeometryConstants.CLOSEDISTANCE,
+                    GeometryConstants.CLOSEDISTANCE,
                     false);
 
-                foreach (RoomObject obj in candidates)
+                foreach ( RoomObject obj in candidates )
                 {
-                    if (obj.Flags.IsGettable)
+                    if ( obj.Flags.IsGettable )
                     {
-                        SendReqGetMessage(new ObjectID(obj.ID));
+                        SendReqGetMessage( new ObjectID( obj.ID ) );
                     }
                 }
             }
@@ -2803,20 +2812,20 @@ namespace Meridian59.Client
         public void UseUnuseApply(InventoryObject Item)
         {
             // check if the item needs a target to apply on
-            if (Item.Flags.IsApplyable)
+            if ( Item.Flags.IsApplyable )
             {
-                SendReqApply(Item.ID);
+                SendReqApply( Item.ID );
             }
             else
             {
                 // usable targets
-                if (!Item.IsInUse)
+                if ( !Item.IsInUse )
                 {
-                    SendReqUseMessage(Item.ID);
+                    SendReqUseMessage( Item.ID );
                 }
                 else
                 {
-                    SendReqUnuseMessage(Item.ID);
+                    SendReqUnuseMessage( Item.ID );
                 }
             }
         }
@@ -2827,68 +2836,68 @@ namespace Meridian59.Client
         /// <param name="Text"></param>
         public void ExecChatCommand(string Text)
         {
-            if (Text == null || String.Equals(Text, String.Empty))
+            if ( Text == null || String.Equals( Text, String.Empty ) )
                 return;
 
             // log all kind of chatcommands, even the malformed
-            Data.ChatCommandHistoryAdd(Text);
+            Data.ChatCommandHistoryAdd( Text );
 
             // parse chatcommand
             ChatCommand chatCommand = ChatCommand.Parse(Text, Data, Config);
 
             // handle chatcommand
-            if (chatCommand != null)
+            if ( chatCommand != null )
             {
-                switch (chatCommand.CommandType)
+                switch ( chatCommand.CommandType )
                 {
                     case ChatCommandType.Say:
                         ChatCommandSay chatCommandSay = (ChatCommandSay)chatCommand;
-                        SendSayToMessage(ChatTransmissionType.Normal, chatCommandSay.Text);
+                        SendSayToMessage( ChatTransmissionType.Normal, chatCommandSay.Text );
                         break;
 
                     case ChatCommandType.Emote:
                         ChatCommandEmote chatCommandEmote = (ChatCommandEmote)chatCommand;
-                        SendSayToMessage(ChatTransmissionType.Emote, chatCommandEmote.Text);
+                        SendSayToMessage( ChatTransmissionType.Emote, chatCommandEmote.Text );
                         break;
 
                     case ChatCommandType.Yell:
                         ChatCommandYell chatCommandYell = (ChatCommandYell)chatCommand;
-                        SendSayToMessage(ChatTransmissionType.Yell, chatCommandYell.Text);
+                        SendSayToMessage( ChatTransmissionType.Yell, chatCommandYell.Text );
                         break;
 
                     case ChatCommandType.Broadcast:
                         ChatCommandBroadcast chatCommandBroadcast = (ChatCommandBroadcast)chatCommand;
-                        SendSayToMessage(ChatTransmissionType.Everyone, chatCommandBroadcast.Text);
+                        SendSayToMessage( ChatTransmissionType.Everyone, chatCommandBroadcast.Text );
                         break;
 
                     case ChatCommandType.Guild:
                         ChatCommandGuild chatCommandGuild = (ChatCommandGuild)chatCommand;
-                        SendSayToMessage(ChatTransmissionType.Guild, chatCommandGuild.Text);
+                        SendSayToMessage( ChatTransmissionType.Guild, chatCommandGuild.Text );
                         break;
 
                     case ChatCommandType.Appeal:
                         ChatCommandAppeal chatCommandAppeal = (ChatCommandAppeal)chatCommand;
-                        SendUserCommandAppeal(chatCommandAppeal.Text);
+                        SendUserCommandAppeal( chatCommandAppeal.Text );
                         break;
 
                     case ChatCommandType.Tell:
                         ChatCommandTell chatCommandTell = (ChatCommandTell)chatCommand;
-                        SendSayGroupMessage(chatCommandTell.TargetID, chatCommandTell.Text);
+                        SendSayGroupMessage( chatCommandTell.TargetID, chatCommandTell.Text );
                         break;
 
                     case ChatCommandType.Cast:
                         ChatCommandCast chatCommandCast = (ChatCommandCast)chatCommand;
-                        SendReqCastMessage(chatCommandCast.Spell);
+                        SendReqCastMessage( chatCommandCast.Spell );
                         break;
 
                     case ChatCommandType.Deposit:
                         ChatCommandDeposit chatCommandDeposit = (ChatCommandDeposit)chatCommand;
-                        SendUserCommandDeposit(chatCommandDeposit.Amount);
+                        SendUserCommandDeposit( chatCommandDeposit.Amount );
                         break;
 
                     case ChatCommandType.WithDraw:
                         ChatCommandWithDraw chatCommandWithDraw = (ChatCommandWithDraw)chatCommand;
-                        SendUserCommandWithDraw(chatCommandWithDraw.Amount);
+                        SendUserCommandWithDraw( chatCommandWithDraw.Amount );
                         break;
 
                     case ChatCommandType.Balance:
@@ -2897,32 +2906,32 @@ namespace Meridian59.Client
 
                     case ChatCommandType.Suicide:
                         ChatCommandSuicide chatCommandSuicide = (ChatCommandSuicide)chatCommand;
-                        
+
                         // execute virtual function, does nothing in this class
                         Suicide();
                         break;
 
                     case ChatCommandType.DM:
                         ChatCommandDM chatCommandDM = (ChatCommandDM)chatCommand;
-                        SendSayToMessage(ChatTransmissionType.DM, chatCommandDM.Text);
+                        SendSayToMessage( ChatTransmissionType.DM, chatCommandDM.Text );
                         break;
 
                     case ChatCommandType.Go:
                         ChatCommandGo chatCommandGo = (ChatCommandGo)chatCommand;
-                        SendReqDM(DMCommandType.GoRoom, chatCommandGo.Text);
+                        SendReqDM( DMCommandType.GoRoom, chatCommandGo.Text );
                         break;
 
                     case ChatCommandType.GoPlayer:
                         ChatCommandGoPlayer chatCommandGoPlayer = (ChatCommandGoPlayer)chatCommand;
-                        SendReqDM(DMCommandType.GoPlayer, chatCommandGoPlayer.ID.ToString());
+                        SendReqDM( DMCommandType.GoPlayer, chatCommandGoPlayer.ID.ToString() );
                         break;
 
                     case ChatCommandType.GetPlayer:
                         ChatCommandGetPlayer chatCommandGetPlayer = (ChatCommandGetPlayer)chatCommand;
-                        SendReqDM(DMCommandType.GetPlayer, chatCommandGetPlayer.ID.ToString());
+                        SendReqDM( DMCommandType.GetPlayer, chatCommandGetPlayer.ID.ToString() );
                         break;
 
-                    case ChatCommandType.Rest:                        
+                    case ChatCommandType.Rest:
                         SendUserCommandRest();
                         break;
 
@@ -2935,44 +2944,44 @@ namespace Meridian59.Client
                         break;
 
                     case ChatCommandType.Dance:
-                        SendActionMessage(ActionType.Dance);
+                        SendActionMessage( ActionType.Dance );
                         break;
 
                     case ChatCommandType.Point:
-                        SendActionMessage(ActionType.Point);
+                        SendActionMessage( ActionType.Point );
                         break;
 
                     case ChatCommandType.Wave:
-                        SendActionMessage(ActionType.Wave);
+                        SendActionMessage( ActionType.Wave );
                         break;
 #if !VANILLA
                     case ChatCommandType.TempSafe:
-                        Data.ClientPreferences.TempSafe = ((ChatCommandTempSafe)chatCommand).On;
+                        Data.ClientPreferences.TempSafe = ( (ChatCommandTempSafe)chatCommand ).On;
                         SendUserCommandSendPreferences();
                         break;
 
                     case ChatCommandType.Grouping:
-                        Data.ClientPreferences.Grouping = ((ChatCommandGrouping)chatCommand).On;
+                        Data.ClientPreferences.Grouping = ( (ChatCommandGrouping)chatCommand ).On;
                         SendUserCommandSendPreferences();
                         break;
 
                     case ChatCommandType.AutoLoot:
-                        Data.ClientPreferences.AutoLoot = ((ChatCommandAutoLoot)chatCommand).On;
+                        Data.ClientPreferences.AutoLoot = ( (ChatCommandAutoLoot)chatCommand ).On;
                         SendUserCommandSendPreferences();
                         break;
 
                     case ChatCommandType.AutoCombine:
-                        Data.ClientPreferences.AutoCombine = ((ChatCommandAutoCombine)chatCommand).On;
+                        Data.ClientPreferences.AutoCombine = ( (ChatCommandAutoCombine)chatCommand ).On;
                         SendUserCommandSendPreferences();
                         break;
 
                     case ChatCommandType.ReagentBag:
-                        Data.ClientPreferences.ReagentBag = ((ChatCommandReagentBag)chatCommand).On;
+                        Data.ClientPreferences.ReagentBag = ( (ChatCommandReagentBag)chatCommand ).On;
                         SendUserCommandSendPreferences();
                         break;
 
                     case ChatCommandType.SpellPower:
-                        Data.ClientPreferences.SpellPower = ((ChatCommandSpellPower)chatCommand).On;
+                        Data.ClientPreferences.SpellPower = ( (ChatCommandSpellPower)chatCommand ).On;
                         SendUserCommandSendPreferences();
                         break;
 
@@ -2983,12 +2992,12 @@ namespace Meridian59.Client
 #if !OPENMERIDIAN
                     case ChatCommandType.Invite:
                         ChatCommandInvite chatCommandInvite = (ChatCommandInvite)chatCommand;
-                        SendUserCommandGuildInvite(chatCommandInvite.TargetID);
+                        SendUserCommandGuildInvite( chatCommandInvite.TargetID );
                         break;
 #endif
 #endif
                 }
-            }    
+            }
         }
 
         /// <summary>
@@ -2999,7 +3008,7 @@ namespace Meridian59.Client
         {
             ObjectBase obj;
 
-            switch (Action)
+            switch ( Action )
             {
                 case AvatarAction.Attack:
                     SendReqAttackMessage();
@@ -3007,7 +3016,7 @@ namespace Meridian59.Client
 
                 case AvatarAction.Rest:
                     // if not resting, start resting
-                    if (!Data.IsResting)
+                    if ( !Data.IsResting )
                     {
                         // send command
                         SendUserCommandRest();
@@ -3021,47 +3030,47 @@ namespace Meridian59.Client
                     break;
 
                 case AvatarAction.Dance:
-                    SendActionMessage(ActionType.Dance);
+                    SendActionMessage( ActionType.Dance );
                     break;
 
                 case AvatarAction.Wave:
-                    SendActionMessage(ActionType.Wave);
+                    SendActionMessage( ActionType.Wave );
                     break;
 
                 case AvatarAction.Point:
-                    SendActionMessage(ActionType.Point);
+                    SendActionMessage( ActionType.Point );
                     break;
 
                 case AvatarAction.Loot:
                     // Before we do anything else, check if the modifier
                     // key is held down. In that case: Loot all and break.
-                    if (Data.SelfTarget)
+                    if ( Data.SelfTarget )
                     {
                         LootAll();
                         break;
                     }
 
                     // Now, let's check if we have a target
-                    if (Data.TargetObject != null)
+                    if ( Data.TargetObject != null )
                     {
                         // Check if it's actually lootable
-                        if (Data.TargetObject.Flags.IsGettable)
+                        if ( Data.TargetObject.Flags.IsGettable )
                         {
                             // Yes it is. Get it and break.
-                            SendReqGetMessage(new ObjectID(Data.TargetObject.ID));
+                            SendReqGetMessage( new ObjectID( Data.TargetObject.ID ) );
                             break;
                         }
                     }
 
                     // Prevent loot window flickering in held loot button.
-                    if (GameTick.CanReqAction())
+                    if ( GameTick.CanReqAction() )
                         GameTick.DidReqAction();
                     else
                         break;
-                    
+
                     // It looks like we want to loot, but haven't decided what.
                     // Bring up the loot window if it isn't up yet.
-                    if (!Data.RoomObjectsLoot.IsVisible)
+                    if ( !Data.RoomObjectsLoot.IsVisible )
                     {
                         Data.RoomObjectsLoot.IsVisible = true;
                         break;
@@ -3088,21 +3097,21 @@ namespace Meridian59.Client
                     flags2.IsContainer = true;
 
                     // try find object
-                    obj = Data.GetInteractObject(true, true, flags1, flags2);
+                    obj = Data.GetInteractObject( true, true, flags1, flags2 );
 
-                    if (obj != null)
+                    if ( obj != null )
                     {
-                        if (obj.Flags.IsContainer)
-                            SendSendObjectContents(obj.ID);
+                        if ( obj.Flags.IsContainer )
+                            SendSendObjectContents( obj.ID );
 
                         else
-                            SendReqActivate(obj.ID);
+                            SendReqActivate( obj.ID );
                     }
                     break;
 
                 case AvatarAction.Trade:
                     // just popup a background initiated trade (by other party)
-                    if (Data.Trade.IsBackgroundOffer)
+                    if ( Data.Trade.IsBackgroundOffer )
                         Data.Trade.IsVisible = true;
 
                     // initate trade ourself
@@ -3113,14 +3122,14 @@ namespace Meridian59.Client
                         flags.IsOfferable = true;
 
                         // find object
-                        obj = Data.GetInteractObject(true, true, flags);
+                        obj = Data.GetInteractObject( true, true, flags );
 
-                        if (obj != null)
+                        if ( obj != null )
                         {
                             Data.Trade.TradePartner = obj;
                             Data.Trade.IsVisible = true;
                         }
-                    }                
+                    }
                     break;
 
                 case AvatarAction.GuildInvite:
@@ -3136,7 +3145,7 @@ namespace Meridian59.Client
         /// </summary>
         protected virtual void Suicide()
         {
-        }           
+        }
         #endregion
     }
 }
