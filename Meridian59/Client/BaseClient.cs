@@ -430,6 +430,14 @@ namespace Meridian59.Client
                     HandleUserCommandMessage((UserCommandMessage)Message);
                     break;
 
+                case MessageTypeGameMode.PasswordOK:                        // 160
+                    HandlePasswordOKMessage((PasswordOKMessage)Message);
+                    break;
+
+                case MessageTypeGameMode.PasswordNotOK:                     // 161
+                    HandlePasswordNotOKMessage((PasswordNotOKMessage)Message);
+                    break;
+
                 case MessageTypeGameMode.Admin:                             // 162
                     HandleAdminMessage((AdminMessage)Message);
                     break;
@@ -705,6 +713,24 @@ namespace Meridian59.Client
         protected virtual void HandleWaitMessage(WaitMessage Message)
         {
             Util.ForceMaximumGC();
+        }
+
+        /// <summary>
+        /// Successful password change
+        /// </summary>
+        /// <param name="Message"></param>
+        protected virtual void HandlePasswordOKMessage(PasswordOKMessage Message)
+        {
+            
+        }
+
+        /// <summary>
+        /// Successful password change
+        /// </summary>
+        /// <param name="Message"></param>
+        protected virtual void HandlePasswordNotOKMessage(PasswordNotOKMessage Message)
+        {
+
         }
 
         /// <summary>
@@ -1122,6 +1148,19 @@ namespace Meridian59.Client
 
             // send/enqueue it (async)
             ServerConnection.SendQueue.Enqueue(message);
+        }
+
+        /// <summary>
+        /// Requests to change user's password
+        /// </summary>
+        /// <param name="PasswordOld"></param>
+        /// <param name="PasswordNew"></param>
+        public virtual void SendReqChangePassword(string PasswordOld, string PasswordNew)
+        {
+            ChangePasswordMessage message = new ChangePasswordMessage(PasswordOld, PasswordNew);
+
+            // send/enqueue it (async)
+            ServerConnection.SendQueue.Enqueue( message );
         }
 
         /// <summary>

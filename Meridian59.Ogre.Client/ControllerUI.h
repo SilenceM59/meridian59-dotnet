@@ -259,7 +259,8 @@ namespace Meridian59 { namespace Ogre
          static ::CEGUI::Window* MTimeValue = nullptr;
          static ::CEGUI::Window* RoomDescription = nullptr;
          static ::CEGUI::Window* RoomValue = nullptr;
-         static ::CEGUI::PushButton* Lock = nullptr;
+		 static ::CEGUI::Window* PasswordButton = nullptr;
+		 static ::CEGUI::PushButton* Lock = nullptr;
 
          static void Initialize();
          static void Destroy();
@@ -1298,6 +1299,26 @@ namespace Meridian59 { namespace Ogre
          static void ApplyLanguage();
       };
 
+	  /// <summary>
+	  /// ChangePassword window
+	  /// </summary>
+	  ref class ChangePassword abstract sealed
+	  {
+	  public:
+		  static ::CEGUI::Window* Window = nullptr;
+		  static ::CEGUI::Editbox* OldPassword = nullptr;
+		  static ::CEGUI::Window* OldPasswordDesc = nullptr;
+		  static ::CEGUI::Editbox* NewPassword = nullptr;
+		  static ::CEGUI::Window* NewPasswordDesc = nullptr;
+		  static ::CEGUI::Editbox* ConfirmPassword = nullptr;
+		  static ::CEGUI::Window* ConfirmPasswordDesc = nullptr;
+		  static ::CEGUI::PushButton* Change = nullptr;
+
+		  static void Initialize();
+		  static void Destroy();
+		  static void ApplyLanguage();
+	  };
+
       /// <summary>
       /// Options window
       /// </summary>
@@ -1582,7 +1603,8 @@ namespace Meridian59 { namespace Ogre
          static bool OnMoodAngryClicked(const CEGUI::EventArgs& e);
          static bool OnSafetyClicked(const CEGUI::EventArgs& e);
          static bool OnPlayersClicked(const CEGUI::EventArgs& e);
-         static bool OnLockClicked(const CEGUI::EventArgs& e);
+		 static bool OnPasswordButtonClicked(const CEGUI::EventArgs& e);
+		 static bool OnLockClicked(const CEGUI::EventArgs& e);
          static bool OnFPSClicked(const CEGUI::EventArgs& e);
       };
 
@@ -2055,6 +2077,18 @@ namespace Meridian59 { namespace Ogre
          static bool OnUsernameKeyUp(const CEGUI::EventArgs& e);
          static bool OnPasswordKeyUp(const CEGUI::EventArgs& e);
       };
+
+	  /// <summary>
+	  /// Change Password event handlers
+	  /// </summary>
+	  class ChangePassword
+	  {
+	  public:
+		  static bool OnChangeClicked(const CEGUI::EventArgs& e);
+		  static bool OnOldPasswordKeyUp(const CEGUI::EventArgs& e);
+		  static bool OnNewPasswordKeyUp(const CEGUI::EventArgs& e);
+		  static bool OnConfirmPasswordKeyUp(const CEGUI::EventArgs& e);
+	  };
 
       /// <summary>
       /// Options event handlers

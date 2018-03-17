@@ -443,14 +443,8 @@ namespace Meridian59
 				// Auto-phase below XX HP
 				if (!auto_phasing && HP_Percent <= 0.30)
 				{
+					StopEverything();
 					allow_fast_attack = false;
-
-					if (!stop_test)
-					{
-						Log("HP: " + HP.ToString() + " / Max: " + HP_Max.ToString() + " / Percent: " + HP_Percent.ToString(), true);
-						stop_test = true;
-					}
-
 					// Phase me, I am low HP.
 					ticks_phase = 0;
 					auto_phasing = true;
@@ -1026,7 +1020,7 @@ namespace Meridian59
 			{
 				last_message = new_message->ToString();
 
-				if (last_message->Contains("This place of safety"))
+				if (last_message->Contains("This place of safety") || last_message->Contains("recently attacked a player"))
 				{
 					is_safe_logon = true;
 					OgreClient::Singleton->Data->ChatMessages->Remove(new_message);

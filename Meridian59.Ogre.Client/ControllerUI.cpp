@@ -155,7 +155,8 @@ namespace Meridian59 { namespace Ogre
       LootList::Initialize();
 	  GoList::Initialize();
 	  Login::Initialize();
-      Options::Initialize();
+	  ChangePassword::Initialize();
+	  Options::Initialize();
       Stats::Initialize();
 
       // attach listener to Data
@@ -225,6 +226,7 @@ namespace Meridian59 { namespace Ogre
       LootList::Destroy();
 	  GoList::Destroy();
 	  Login::Destroy();
+	  ChangePassword::Destroy();
       Options::Destroy();
       Stats::Destroy();
 
@@ -298,7 +300,8 @@ namespace Meridian59 { namespace Ogre
       LootList::ApplyLanguage();
 	  GoList::ApplyLanguage();
 	  Login::ApplyLanguage();
-      Options::ApplyLanguage();
+	  ChangePassword::ApplyLanguage();
+	  Options::ApplyLanguage();
       Stats::ApplyLanguage();
    };
 
@@ -753,7 +756,8 @@ namespace Meridian59 { namespace Ogre
          LootList::Window->setVisible(false);
 		 GoList::Window->setVisible(false);
 		 Login::Window->setVisible(mode == UIMode::Login);
-         Options::Window->setVisible(false);
+		 ChangePassword::Window->setVisible(false);
+		 Options::Window->setVisible(false);
          Stats::Window->setVisible(false);
 
          if (mode == UIMode::AvatarSelection)

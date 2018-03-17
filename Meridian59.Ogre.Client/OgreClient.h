@@ -156,6 +156,18 @@ namespace Meridian59 { namespace Ogre
       /// <param name="Message"></param>
       virtual void HandleLoginOKMessage(LoginOKMessage^ Message) override;
 
+	  /// <summary>
+	  /// Handler for a successful password change.
+	  /// </summary>
+	  /// <param name="Message"></param>
+	  virtual void HandlePasswordOKMessage(PasswordOKMessage^ Message) override;
+
+	  /// <summary>
+	  /// Handler for a failed password change.
+	  /// </summary>
+	  /// <param name="Message"></param>
+	  virtual void HandlePasswordNotOKMessage(PasswordNotOKMessage^ Message) override;
+
       /// <summary>
       /// Handler for failed login/wrong credentials.
       /// </summary>

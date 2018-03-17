@@ -6,13 +6,17 @@
 
 const char* EN[] =
 {
-   "Username",    // 0
-   "Password",    // 1
-   "Connect",     // 2
-   "Options",     // 3
-   "On",          // 4
-   "Off",         // 5
-   "Key",         // 6
+   "Username",         // 0
+   "Password",         // 1
+   "Connect",          // 2
+   "Options",          // 3
+   "On",               // 4
+   "Off",              // 5
+   "Key",              // 6
+   "Old Password",     // 7
+   "New Password",     // 8
+   "Confirm Password",  // 9
+   "Change"            // 10
 };
 
 const char* EN_WINDOW_TITLES[] =
@@ -57,7 +61,8 @@ const char* EN_TOOLTIPS_STATUSBAR[] =
    "Shows the actual mood of your character.",                                   // 3
    "If you change your safety to Off you can attack inocent players.",           // 4
    "Here you can see the actual Meridian 59 time.",                              // 5
-   "This shows you the actual room / area name, in which you actually are."      // 6
+   "This shows you the actual room / area name, in which you actually are.",     // 6
+   "Change your account password."                                               // 7
 };
 
 const char* EN_DESCRIPTIONS_STATUSBAR[] =
@@ -157,7 +162,8 @@ const char* DE_TOOLTIPS_STATUSBAR[] =
    "Zeigt die aktuelle Stimmung Deines Characters an.",                                      // 3
    "Wenn Du Deine Sicherheit auf Aus stellst, kannst Du unschuldige Spieler angreifen",      // 4
    "Hier siehst Du die aktuelle Meridian 59 Zeit.",                                          // 5
-   "Zeigt Dir den aktuellen Raum / Bereich an, indem Du Dich befindest."                     // 6
+   "Zeigt Dir den aktuellen Raum / Bereich an, indem Du Dich befindest.",                    // 6
+   "Change your account password."                                                           // 7
 };
 
 const char* DE_DESCRIPTIONS_STATUSBAR[] =
@@ -194,84 +200,84 @@ const char* DE_CHARINFONOTOKERROR_OKDIALOG[] =
 
 const char* GetLangLabel(const LANGSTR::Enum ID)
 {
-   using ::Meridian59::Ogre::OgreClient;
-   using ::Meridian59::Common::Enums::LanguageCode;
+	using ::Meridian59::Ogre::OgreClient;
+	using ::Meridian59::Common::Enums::LanguageCode;
 
-   switch (OgreClient::Singleton->Config->Language)
-   {
-   case LanguageCode::German: return DE[ID];
-   default:                   return EN[ID];
-   }
+	switch (OgreClient::Singleton->Config->Language)
+	{
+	case LanguageCode::German: return DE[ID];
+	default:                   return EN[ID];
+	}
 };
 
 const char* GetLangWindowTitle(const LANGSTR_WINDOW_TITLE::Enum ID)
 {
-   using ::Meridian59::Ogre::OgreClient;
-   using ::Meridian59::Common::Enums::LanguageCode;
+	using ::Meridian59::Ogre::OgreClient;
+	using ::Meridian59::Common::Enums::LanguageCode;
 
-   switch (OgreClient::Singleton->Config->Language)
-   {
-   case LanguageCode::German: return DE_WINDOW_TITLES[ID];
-   default:                   return EN_WINDOW_TITLES[ID];
-   }
+	switch (OgreClient::Singleton->Config->Language)
+	{
+	case LanguageCode::German: return DE_WINDOW_TITLES[ID];
+	default:                   return EN_WINDOW_TITLES[ID];
+	}
 };
 
 const char* GetLangTooltipMood(const LANGSTR_TOOLTIP_MOOD::Enum ID)
 {
-   using ::Meridian59::Ogre::OgreClient;
-   using ::Meridian59::Common::Enums::LanguageCode;
+	using ::Meridian59::Ogre::OgreClient;
+	using ::Meridian59::Common::Enums::LanguageCode;
 
-   switch (OgreClient::Singleton->Config->Language)
-   {
-   case LanguageCode::German: return DE_TOOLTIPS_MOOD[ID];
-   default:                   return EN_TOOLTIPS_MOOD[ID];
-   }
+	switch (OgreClient::Singleton->Config->Language)
+	{
+	case LanguageCode::German: return DE_TOOLTIPS_MOOD[ID];
+	default:                   return EN_TOOLTIPS_MOOD[ID];
+	}
 };
 
 const char* GetLangTooltipOnlinePlayer(const LANGSTR_TOOLTIP_ONLINEPLAYER::Enum ID)
 {
-   using ::Meridian59::Ogre::OgreClient;
-   using ::Meridian59::Common::Enums::LanguageCode;
+	using ::Meridian59::Ogre::OgreClient;
+	using ::Meridian59::Common::Enums::LanguageCode;
 
-   switch (OgreClient::Singleton->Config->Language)
-   {
-   case LanguageCode::German: return DE_TOOLTIPS_ONLINEPLAYER[ID];
-   default:                   return EN_TOOLTIPS_ONLINEPLAYER[ID];
-   }
+	switch (OgreClient::Singleton->Config->Language)
+	{
+	case LanguageCode::German: return DE_TOOLTIPS_ONLINEPLAYER[ID];
+	default:                   return EN_TOOLTIPS_ONLINEPLAYER[ID];
+	}
 };
 
 const char* GetLangTooltipStatusBar(const LANGSTR_TOOLTIP_STATUSBAR::Enum ID)
 {
-   using ::Meridian59::Ogre::OgreClient;
-   using ::Meridian59::Common::Enums::LanguageCode;
+	using ::Meridian59::Ogre::OgreClient;
+	using ::Meridian59::Common::Enums::LanguageCode;
 
-   switch (OgreClient::Singleton->Config->Language)
-   {
-   case LanguageCode::German: return DE_TOOLTIPS_STATUSBAR[ID];
-   default:                   return EN_TOOLTIPS_STATUSBAR[ID];
-   }
+	switch (OgreClient::Singleton->Config->Language)
+	{
+	case LanguageCode::German: return DE_TOOLTIPS_STATUSBAR[ID];
+	default:                   return EN_TOOLTIPS_STATUSBAR[ID];
+	}
 };
 
 const char* GetLangDescriptionStatusBar(const LANGSTR_DESCRIPTION_STATUSBAR::Enum ID)
 {
-   using ::Meridian59::Ogre::OgreClient;
-   using ::Meridian59::Common::Enums::LanguageCode;
+	using ::Meridian59::Ogre::OgreClient;
+	using ::Meridian59::Common::Enums::LanguageCode;
 
-   switch (OgreClient::Singleton->Config->Language)
-   {
-   case LanguageCode::German: return DE_DESCRIPTIONS_STATUSBAR[ID];
-   default:                   return EN_DESCRIPTIONS_STATUSBAR[ID];
-   }
+	switch (OgreClient::Singleton->Config->Language)
+	{
+	case LanguageCode::German: return DE_DESCRIPTIONS_STATUSBAR[ID];
+	default:                   return EN_DESCRIPTIONS_STATUSBAR[ID];
+	}
 };
 
 const char* GetCharInfoNotOKErrorOkDialog(const LANGSTR_CHARINFONOTOKERROR_OKDIALOG::Enum ID)
 {
-   using ::Meridian59::Ogre::OgreClient;
-   using ::Meridian59::Common::Enums::LanguageCode;
+	using ::Meridian59::Ogre::OgreClient;
+	using ::Meridian59::Common::Enums::LanguageCode;
 
-   switch (OgreClient::Singleton->Config->Language)
-   {
-   case LanguageCode::German: return DE_CHARINFONOTOKERROR_OKDIALOG[ID];
-   default:                   return EN_CHARINFONOTOKERROR_OKDIALOG[ID];
-   }
+	switch (OgreClient::Singleton->Config->Language)
+	{
+	case LanguageCode::German: return DE_CHARINFONOTOKERROR_OKDIALOG[ID];
+	default:                   return EN_CHARINFONOTOKERROR_OKDIALOG[ID];
+	}
 };

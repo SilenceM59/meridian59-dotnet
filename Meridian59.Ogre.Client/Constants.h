@@ -102,7 +102,7 @@
 #define PARTICLES_SNOW_NAME			"ParticleSysSnow"
 
 /**********************************************************************************************
-                                    CEGUI
+									CEGUI
 ***********************************************************************************************/
 
 /* General */
@@ -173,29 +173,29 @@
 #define UI_TAGCOLOR_WHITE        "[colour='"UI_COLOR_WHITE"']"
 
 #ifndef VANILLA
-   #define UI_COLOR_CHATBRIGHTRED   "FFC80000"
-   #define UI_COLOR_CHATLIGHTGREEN  "FF00FF00"
-   #define UI_COLOR_CHATYELLOW      "FFE6E619"
-   #define UI_COLOR_CHATPINK        "FFFF69D2"
-   #define UI_COLOR_CHATORANGE      "FFFF9600"
-   #define UI_COLOR_CHATAQUAMARINE  "FF7FFFD4"
-   #define UI_COLOR_CHATCYAN        "FF2EEAFA"
-   #define UI_COLOR_CHATTEAL        "FF0B3B70"
-   #define UI_COLOR_CHATDARKGREY    "FF3C3C3C"
-   #define UI_COLOR_CHATVIOLET      "FF800080"
-   #define UI_COLOR_CHATMAGENTA     "FFCD00CD"
+#define UI_COLOR_CHATBRIGHTRED   "FFC80000"
+#define UI_COLOR_CHATLIGHTGREEN  "FF00FF00"
+#define UI_COLOR_CHATYELLOW      "FFE6E619"
+#define UI_COLOR_CHATPINK        "FFFF69D2"
+#define UI_COLOR_CHATORANGE      "FFFF9600"
+#define UI_COLOR_CHATAQUAMARINE  "FF7FFFD4"
+#define UI_COLOR_CHATCYAN        "FF2EEAFA"
+#define UI_COLOR_CHATTEAL        "FF0B3B70"
+#define UI_COLOR_CHATDARKGREY    "FF3C3C3C"
+#define UI_COLOR_CHATVIOLET      "FF800080"
+#define UI_COLOR_CHATMAGENTA     "FFCD00CD"
 
-   #define UI_TAGCOLOR_CHATBRIGHTRED   "[colour='"UI_COLOR_CHATBRIGHTRED"']"
-   #define UI_TAGCOLOR_CHATLIGHTGREEN  "[colour='"UI_COLOR_CHATLIGHTGREEN"']"
-   #define UI_TAGCOLOR_CHATYELLOW      "[colour='"UI_COLOR_CHATYELLOW"']"
-   #define UI_TAGCOLOR_CHATPINK        "[colour='"UI_COLOR_CHATPINK"']"
-   #define UI_TAGCOLOR_CHATORANGE      "[colour='"UI_COLOR_CHATORANGE"']"
-   #define UI_TAGCOLOR_CHATAQUAMARINE  "[colour='"UI_COLOR_CHATAQUAMARINE"']"
-   #define UI_TAGCOLOR_CHATCYAN        "[colour='"UI_COLOR_CHATCYAN"']"
-   #define UI_TAGCOLOR_CHATTEAL        "[colour='"UI_COLOR_CHATTEAL"']"
-   #define UI_TAGCOLOR_CHATDARKGREY    "[colour='"UI_COLOR_CHATDARKGREY"']"
-   #define UI_TAGCOLOR_CHATVIOLET      "[colour='"UI_COLOR_CHATVIOLET"']"
-   #define UI_TAGCOLOR_CHATMAGENTA     "[colour='"UI_COLOR_CHATMAGENTA"']"
+#define UI_TAGCOLOR_CHATBRIGHTRED   "[colour='"UI_COLOR_CHATBRIGHTRED"']"
+#define UI_TAGCOLOR_CHATLIGHTGREEN  "[colour='"UI_COLOR_CHATLIGHTGREEN"']"
+#define UI_TAGCOLOR_CHATYELLOW      "[colour='"UI_COLOR_CHATYELLOW"']"
+#define UI_TAGCOLOR_CHATPINK        "[colour='"UI_COLOR_CHATPINK"']"
+#define UI_TAGCOLOR_CHATORANGE      "[colour='"UI_COLOR_CHATORANGE"']"
+#define UI_TAGCOLOR_CHATAQUAMARINE  "[colour='"UI_COLOR_CHATAQUAMARINE"']"
+#define UI_TAGCOLOR_CHATCYAN        "[colour='"UI_COLOR_CHATCYAN"']"
+#define UI_TAGCOLOR_CHATTEAL        "[colour='"UI_COLOR_CHATTEAL"']"
+#define UI_TAGCOLOR_CHATDARKGREY    "[colour='"UI_COLOR_CHATDARKGREY"']"
+#define UI_TAGCOLOR_CHATVIOLET      "[colour='"UI_COLOR_CHATVIOLET"']"
+#define UI_TAGCOLOR_CHATMAGENTA     "[colour='"UI_COLOR_CHATMAGENTA"']"
 #endif
 
 /* Fonts */
@@ -304,6 +304,7 @@
 #define UI_NAME_STATUSBAR_MTIMEVAL        "StatusBar.MTimeValue"
 #define UI_NAME_STATUSBAR_ROOMDESC        "StatusBar.RoomDescription"
 #define UI_NAME_STATUSBAR_ROOMVAL         "StatusBar.RoomValue"
+#define UI_NAME_STATUSBAR_PASSWORDBUTTON  "StatusBar.PasswordButton"
 #define UI_NAME_STATUSBAR_LOCK            "StatusBar.Lock"
 #define UI_NAME_ONLINEPLAYERS_WINDOW      "OnlinePlayers"
 #define UI_NAME_ONLINEPLAYERS_LIST        "OnlinePlayers.List"
@@ -592,6 +593,16 @@
 #define UI_NAME_LOGIN_PASSWORDDESC           "Login.PasswordDescription"
 #define UI_NAME_LOGIN_CONNECT                "Login.Connect"
 #define UI_NAME_LOGIN_OPTIONS                "Login.Options"
+
+#define UI_NAME_CHANGEPASSWORD_WINDOW                 "ChangePassword"
+#define UI_NAME_CHANGEPASSWORD_OLDPASSWORD            "ChangePassword.OldPassword"
+#define UI_NAME_CHANGEPASSWORD_OLDPASSWORDDESC        "ChangePassword.OldPasswordDescription"
+#define UI_NAME_CHANGEPASSWORD_NEWPASSWORD            "ChangePassword.NewPassword"
+#define UI_NAME_CHANGEPASSWORD_NEWPASSWORDDESC        "ChangePassword.NewPasswordDescription"
+#define UI_NAME_CHANGEPASSWORD_CONFIRMPASSWORD        "ChangePassword.ConfirmPassword"
+#define UI_NAME_CHANGEPASSWORD_CONFIRMPASSWORDDESC    "ChangePassword.ConfirmPasswordDescription"
+#define UI_NAME_CHANGEPASSWORD_CHANGE                 "ChangePassword.Change"
+
 #define UI_NAME_OPTIONS_WINDOW               "Options"
 #define UI_NAME_OPTIONS_ENGINE               "Options.Engine"
 #define UI_NAME_OPTIONS_INPUT                "Options.Input"
