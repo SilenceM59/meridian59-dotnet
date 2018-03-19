@@ -1276,6 +1276,7 @@ namespace Meridian59 { namespace Ogre
 		  static void Destroy();
 		  static void ApplyLanguage();
 		  static void LoadList();
+		  static void UnloadList();
 		  static void ItemAdd(int Rid, String Name, String RoomName);
 	  };
 
@@ -2060,7 +2061,7 @@ namespace Meridian59 { namespace Ogre
 	  {
 	  public:
 		  static bool OnGoNowClicked(const CEGUI::EventArgs& e);
-		  static bool OnItemDoubleClick(const CEGUI::EventArgs& e);
+		  static bool OnItemDoubleClicked(const CEGUI::EventArgs& e);
 		  static bool OnWindowClosed(const CEGUI::EventArgs& e);
 		  static bool OnWindowKeyUp(const CEGUI::EventArgs& e);
 	  };

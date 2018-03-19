@@ -83,8 +83,26 @@ namespace Meridian59 { namespace Ogre
       const CEGUI::KeyEventArgs& args = (const CEGUI::KeyEventArgs&)e;
       const CEGUI::Editbox* editbox   = (const CEGUI::Editbox*)args.window;
 
-      if (args.scancode == ::CEGUI::Key::Scan::Tab)
-         ControllerUI::Login::Password->activate();
+	  if (args.scancode == ::CEGUI::Key::Scan::Tab)
+	  {
+		  ControllerUI::Login::Password->activate();
+		  ControllerUI::Login::Password->setSelection(0, sizeof(ControllerUI::Login::Password->getText()));
+	  }
+
+	  // Enter key on username also connects...
+	  if (args.scancode == ::CEGUI::Key::Scan::Return &&
+		  !ControllerUI::Login::Connect->isDisabled())
+	  {
+		  OgreClient::Singleton->Config->SelectedConnectionInfo->Username =
+			  StringConvert::CEGUIToCLR(ControllerUI::Login::Username->getText());
+
+		  OgreClient::Singleton->Config->SelectedConnectionInfo->Password =
+			  StringConvert::CEGUIToCLR(ControllerUI::Login::Password->getText());
+
+		  OgreClient::Singleton->Connect();
+
+		  ControllerUI::Login::Window->setEnabled(false);
+	  }
 
       return true;
    };

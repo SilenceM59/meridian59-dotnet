@@ -50,6 +50,9 @@ namespace Meridian59 { namespace Ogre
 
       // focus value
       Value->activate();
+
+	  // Highlight the text in the box so it can be overwritten when typing.
+	  Value->setSelection(0, sizeof(Value));
    };
 
    void ControllerUI::Amount::Drop()

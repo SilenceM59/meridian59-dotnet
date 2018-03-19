@@ -17,21 +17,20 @@ namespace Meridian59 {
 			GoNow->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(UICallbacks::GoList::OnGoNowClicked));
 
 			// subscribe close button
-			Window->subscribeEvent(CEGUI::FrameWindow::EventCloseClicked, CEGUI::Event::Subscriber(UICallbacks::GoList::OnWindowClosed));
+			Window->subscribeEvent(CEGUI::FrameWindow::EventCloseClicked, CEGUI::Event::Subscriber(UICallbacks::OnWindowClosed));
 
 			// subscribe keyup
-			Window->subscribeEvent(CEGUI::FrameWindow::EventKeyUp, CEGUI::Event::Subscriber(UICallbacks::GoList::OnWindowKeyUp));
-
-			// add items to list
-			LoadList();
+			Window->subscribeEvent(CEGUI::FrameWindow::EventKeyUp, CEGUI::Event::Subscriber(UICallbacks::OnKeyUp));
 		};
 
 		void ControllerUI::GoList::Destroy()
 		{
+			
 		};
 
 		void ControllerUI::GoList::ApplyLanguage()
 		{
+			LoadList();
 		};
 
 		void ControllerUI::GoList::ItemAdd(int Rid, String Name, String RoomName)
@@ -70,10 +69,10 @@ namespace Meridian59 {
 			// set name
 			name->setText(roomName);
 
-			// subscribe click event
-			name->subscribeEvent(
-				CEGUI::Window::EventMouseDoubleClick,
-				CEGUI::Event::Subscriber(UICallbacks::Welcome::OnItemDoubleClick));
+			// subscribe doubleclick event
+			widget->subscribeEvent(
+				CEGUI::ItemEntry::EventMouseDoubleClick,
+				CEGUI::Event::Subscriber(UICallbacks::GoList::OnItemDoubleClicked));
 
 			List->addItem(widget);
 
@@ -85,7 +84,7 @@ namespace Meridian59 {
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		bool UICallbacks::GoList::OnItemDoubleClick(const CEGUI::EventArgs& e)
+		bool UICallbacks::GoList::OnItemDoubleClicked(const CEGUI::EventArgs& e)
 		{
 			const CEGUI::WindowEventArgs& args = static_cast<const CEGUI::WindowEventArgs&>(e);
 			CEGUI::ItemListbox* list = ControllerUI::GoList::List;
@@ -134,14 +133,22 @@ namespace Meridian59 {
 
 			return UICallbacks::OnKeyUp(args);
 		};
-
+		
 		bool UICallbacks::GoList::OnWindowClosed(const CEGUI::EventArgs& e)
 		{
+			// Remove everything from the list
+			ControllerUI::GoList::UnloadList();
+
 			// mark GUIroot active
 			ControllerUI::ActivateRoot();
 
 			return true;
 		};
+		
+		void ControllerUI::GoList::UnloadList()
+		{
+			ControllerUI::GoList::Destroy();
+		}
 
 		void ControllerUI::GoList::LoadList()
 		{
