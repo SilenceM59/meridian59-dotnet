@@ -2235,6 +2235,11 @@ namespace Meridian59.Data
             }
         }
 
+        private void RoomObject_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         protected virtual void HandleTurn(TurnMessage Message)
         {
             RoomObject roomObject = RoomObjects.GetItemByID(Message.ObjectID);
