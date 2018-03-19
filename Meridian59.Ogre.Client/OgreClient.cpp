@@ -947,6 +947,10 @@ namespace Meridian59 { namespace Ogre
    void OgreClient::OnLoginErrorConfirmed(Object ^sender, ::System::EventArgs ^e)
    {
       Disconnect();
+
+	  // Highlight the password field so the user can retype it.
+	  ControllerUI::Login::Password->activate();
+	  ControllerUI::Login::Password->setSelection(0, sizeof(ControllerUI::Login::Password->getText()));
    };
 
    void OgreClient::HandleCharactersMessage(CharactersMessage^ Message)

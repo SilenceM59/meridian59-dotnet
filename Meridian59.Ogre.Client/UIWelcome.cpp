@@ -138,7 +138,7 @@ namespace Meridian59 {
 			const CEGUI::ItemListbox* listBox = ControllerUI::Welcome::Avatars;
 			CEGUI::ItemEntry* selectedItem = listBox->getFirstSelectedItem();
 
-			if (!selectedItem && ! info->Characters[Index]->IsEmptySlot)
+			if (!selectedItem && !info->Characters[Index]->IsEmptySlot)
 			{
 				listBox->getItemFromIndex(Index)->setSelected(true);
 			}
@@ -196,7 +196,7 @@ namespace Meridian59 {
 			}
 
 			return true;
-			};
+		};
 
 		bool UICallbacks::Welcome::OnSelectClicked(const CEGUI::EventArgs& e)
 		{
@@ -237,10 +237,10 @@ namespace Meridian59 {
 					OgreClient::Singleton->SendUserCommandSafetyMessage(true);
 #endif
 				}
-				}
+			}
 
 			return true;
-			};
+		};
 
 		bool UICallbacks::Welcome::OnAvatarSelectionChanged(const CEGUI::EventArgs& e)
 		{
@@ -284,6 +284,50 @@ namespace Meridian59 {
 			const CEGUI::ItemListbox* listBox = ControllerUI::Welcome::Avatars;
 			WelcomeInfo^ welcomeInfo = OgreClient::Singleton->Data->WelcomeInfo;
 
+			if (args.scancode == ::CEGUI::Key::Scan::ArrowUp || args.scancode == ::CEGUI::Key::Scan::ArrowLeft)
+			{
+				// Move selected character up one
+				const CEGUI::ItemListbox* listBox = ControllerUI::Welcome::Avatars;
+				CEGUI::ItemEntry* selectedItem = listBox->getFirstSelectedItem();
+
+				if (selectedItem)
+				{
+					int selectedIndex = listBox->getItemIndex(selectedItem);
+
+					if (selectedIndex)
+					{
+						// Can only move up if index is >= 1
+						listBox->getItemFromIndex(selectedIndex - 1)->setSelected(true);
+					}
+				}
+				else {
+					// Just select the first char
+					listBox->getItemFromIndex(0)->setSelected(true);
+				}
+			}
+
+			if (args.scancode == ::CEGUI::Key::Scan::ArrowDown || args.scancode == ::CEGUI::Key::Scan::ArrowRight)
+			{
+				// Move selected character down one
+				const CEGUI::ItemListbox* listBox = ControllerUI::Welcome::Avatars;
+				CEGUI::ItemEntry* selectedItem = listBox->getFirstSelectedItem();
+
+				if (selectedItem)
+				{
+					int selectedIndex = listBox->getItemIndex(selectedItem);
+
+					if (selectedIndex < (listBox->getItemCount() - 1))
+					{
+						// Can only move down if there's a character in the next slot.
+						listBox->getItemFromIndex(selectedIndex + 1)->setSelected(true);
+					}
+				}
+				else {
+					// Just select the first char
+					listBox->getItemFromIndex(0)->setSelected(true);
+				}
+			}
+
 			if (args.scancode == ::CEGUI::Key::Scan::Escape)
 			{
 				OgreClient::Singleton->Disconnect();
@@ -323,9 +367,9 @@ namespace Meridian59 {
 					OgreClient::Singleton->SendUserCommandSafetyMessage(true);
 #endif
 				}
-				}
+			}
 
 			return true;
-			};
 		};
-		};
+	};
+};
