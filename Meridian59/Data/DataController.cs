@@ -2104,8 +2104,10 @@ namespace Meridian59.Data
             V2 viewPos2D = viewerPosition.XZ;
 
             // update the viewer angle using possibly updated value
-            if (AvatarObject != null)
-                AvatarObject.UpdateViewerAngle(ref viewPos2D);
+            if ( AvatarObject != null )
+            {
+                AvatarObject.UpdateViewerAngle( ref viewPos2D );
+            }
 
             // now add the other objects
             foreach (RoomObject Model in Message.RoomObjects)
@@ -2217,13 +2219,19 @@ namespace Meridian59.Data
             {
 #if !VANILLA && !OPENMERIDIAN
                 // set new angle from message
-                roomObject.AngleUnits = Message.Angle;
+                // AngleFix@SilenceM59
+                // Only update angles for objects that are not the avatar.
+                // Otherwise, we will leave the user's original angle unchanged.
+                if ( ! roomObject.IsAvatar )
+                {
+                    roomObject.AngleUnits = Message.Angle;
+                }
 #endif
                 // create destination from values
                 V2 destination = new V2(Message.NewCoordinateX, Message.NewCoordinateY);
 
                 // initiate movement
-                roomObject.StartMoveTo(ref destination, (byte)Message.MovementSpeed);                            
+                roomObject.StartMoveTo(ref destination, (byte)Message.MovementSpeed);
             }
         }
 
