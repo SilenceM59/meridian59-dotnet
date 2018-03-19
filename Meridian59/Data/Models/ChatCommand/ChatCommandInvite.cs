@@ -25,8 +25,10 @@ namespace Meridian59.Data.Models
     public class ChatCommandInvite: ChatCommand
     {
         public const string KEY1 = "invite";
-        public const string KEY2 = "inv";
-        public const string KEY3 = "einladen";
+        public const string KEY2 = "invit";
+        public const string KEY3 = "invi";
+        public const string KEY4 = "inv";
+        public const string KEY5 = "einladen";
 
         public override ChatCommandType CommandType { get { return ChatCommandType.Invite; } }
         public uint TargetID { get; set; }

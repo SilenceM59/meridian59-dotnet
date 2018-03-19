@@ -23,6 +23,9 @@ namespace Meridian59.Data.Models
     public class ChatCommandQuit : ChatCommand
     {
         public const string KEY1 = "quit";
+        public const string KEY2 = "q";
+        public const string KEY3 = "exit";
+        public const string KEY4 = "close";
 
         public override ChatCommandType CommandType { get { return ChatCommandType.Quit; } }
 

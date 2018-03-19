@@ -23,6 +23,9 @@ namespace Meridian59.Data.Models
     public class ChatCommandGetPlayer : ChatCommand
     {
         public const string KEY1 = "getplayer";
+        public const string KEY2 = "gp";
+        public const string KEY3 = "getp";
+        public const string KEY4 = "getpl";
 
         public override ChatCommandType CommandType { get { return ChatCommandType.GetPlayer; } }
         public uint ID { get; set; }

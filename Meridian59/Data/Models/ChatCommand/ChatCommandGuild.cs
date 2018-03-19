@@ -23,8 +23,11 @@ namespace Meridian59.Data.Models
     public class ChatCommandGuild: ChatCommand
     {
         public const string KEY1 = "guild";
-        public const string KEY2 = "g";
-        public const string KEY3 = "gilde";
+        public const string KEY2 = "guil";
+        public const string KEY3 = "gui";
+        public const string KEY4 = "gu";
+        public const string KEY5 = "g";
+        public const string KEY6 = "gilde";
 
         public override ChatCommandType CommandType { get { return ChatCommandType.Guild; } }
         public string Text { get; set; }

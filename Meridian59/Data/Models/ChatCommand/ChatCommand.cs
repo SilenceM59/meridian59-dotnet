@@ -98,7 +98,7 @@ namespace Meridian59.Data.Models
             command = splitted[0];
 
             // select command
-            switch (command)
+            switch (command.ToLower())
             {
                 case ChatCommandSay.KEY1:
                 case ChatCommandSay.KEY2:
@@ -144,7 +144,10 @@ namespace Meridian59.Data.Models
                 case ChatCommandGuild.KEY1:
                 case ChatCommandGuild.KEY2:
                 case ChatCommandGuild.KEY3:
-                    if (splitted.Length > 1)
+                case ChatCommandGuild.KEY4:
+                case ChatCommandGuild.KEY5:
+                case ChatCommandGuild.KEY6:
+                    if ( splitted.Length > 1)
                     {
                         text = String.Join(DELIMITER.ToString(), splitted, 1, splitted.Length - 1);
                         returnValue = new ChatCommandGuild(text);
@@ -174,7 +177,12 @@ namespace Meridian59.Data.Models
 
                 case ChatCommandDeposit.KEY1:
                 case ChatCommandDeposit.KEY2:
-                    if (splitted.Length == 2)
+                case ChatCommandDeposit.KEY3:
+                case ChatCommandDeposit.KEY4:
+                case ChatCommandDeposit.KEY5:
+                case ChatCommandDeposit.KEY6:
+                case ChatCommandDeposit.KEY7:
+                    if ( splitted.Length == 2)
                     {
                         uint amount = 0;
 
@@ -186,7 +194,8 @@ namespace Meridian59.Data.Models
                 case ChatCommandWithDraw.KEY1:
                 case ChatCommandWithDraw.KEY2:
                 case ChatCommandWithDraw.KEY3:
-                    if (splitted.Length == 2)
+                case ChatCommandWithDraw.KEY4:
+                    if ( splitted.Length == 2)
                     {
                         uint amount = 0;
 
@@ -229,10 +238,17 @@ namespace Meridian59.Data.Models
                     break;
 
                 case ChatCommandGoPlayer.KEY1:
+                case ChatCommandGoPlayer.KEY2:
+                case ChatCommandGoPlayer.KEY3:
+                case ChatCommandGoPlayer.KEY4:
+                case ChatCommandGoPlayer.KEY5:
                     returnValue = ParseGoPlayer(splitted, lower, DataController);                  
                     break;
 
                 case ChatCommandGetPlayer.KEY1:
+                case ChatCommandGetPlayer.KEY2:
+                case ChatCommandGetPlayer.KEY3:
+                case ChatCommandGetPlayer.KEY4:
                     returnValue = ParseGetPlayer(splitted, lower, DataController);
                     break;
 
@@ -247,6 +263,9 @@ namespace Meridian59.Data.Models
                     break;
 
                 case ChatCommandQuit.KEY1:
+                case ChatCommandQuit.KEY2:
+                case ChatCommandQuit.KEY3:
+                case ChatCommandQuit.KEY4:
                     returnValue = new ChatCommandQuit();
                     break;
 
@@ -282,6 +301,7 @@ namespace Meridian59.Data.Models
                     break;
 
                 case ChatCommandReagentBag.KEY1:
+                case ChatCommandReagentBag.KEY2:
                     returnValue = ParseReagentBag(splitted, lower, DataController);
                     break;
 
@@ -300,6 +320,8 @@ namespace Meridian59.Data.Models
                 case ChatCommandInvite.KEY1:
                 case ChatCommandInvite.KEY2:
                 case ChatCommandInvite.KEY3:
+                case ChatCommandInvite.KEY4:
+                case ChatCommandInvite.KEY5:
                     returnValue = ParseInvite(splitted, lower, DataController);
                     break;
 #endif

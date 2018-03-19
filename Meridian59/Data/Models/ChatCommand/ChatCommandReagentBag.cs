@@ -25,6 +25,7 @@ namespace Meridian59.Data.Models
     public class ChatCommandReagentBag : ChatCommand
     {
         public const string KEY1 = "reagentbag";
+        public const string KEY2 = "regs";
 
         public override ChatCommandType CommandType { get { return ChatCommandType.ReagentBag; } }
         public bool On { get; set; }
